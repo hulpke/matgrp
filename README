@@ -1,0 +1,22 @@
+The matgrp package provides an implementation of a method for
+FittingFreeLiftSetup
+for matrix groups, using the recog package.
+It is provided as a package, as it requires other packages (recog, and its
+dependencies) to be installed.
+
+It is Copyright (C) 2014 by Alexander Hulpke
+It is licensed under GPL v2 or v3. (see http://gnu.org/licenses/gpl.html)
+
+At this point no methods exist that automatically apply to matrix groups.
+However if calling
+FittingFreeLiftSetup
+on a matrix group, afterwards certain operations (such as ConjugacyClasses
+and MaximalSubgroupClassReps) will apply with Solvable radical methods.
+
+The code is still in beta test stage. It is possible that error messages
+arise when computing the initial data structure. In such a case simply call
+the command again.
+
+Fort Collins, October 2014
+
+                                                             Alexander Hulpke

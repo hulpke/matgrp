@@ -1,0 +1,162 @@
+<html><head><title>[matgrp] 1 matgrp</title></head>
+<body text="#000000" bgcolor="#ffffff">
+[<a href = "chapters.htm">Up</a>] [<a href = "theindex.htm">Index</a>]
+<h1>1 matgrp</h1><p>
+<P>
+<H3>Sections</H3>
+<oL>
+<li> <A HREF="CHAP001.htm#SECT001">Usage</a>
+<li> <A HREF="CHAP001.htm#SECT002">Generic Treatment of Matrix groups</a>
+<li> <A HREF="CHAP001.htm#SECT003">Error Messages</a>
+</ol><p>
+<p>
+This manual describes the <font face="Gill Sans,Helvetica,Arial">matgrp</font> package. This package for <font face="Gill Sans,Helvetica,Arial">GAP</font>
+provides an interface for Solvable Radical (or Fitting-free) algorithms for
+matrix groups, using a recognition tree.
+<p>
+The package also implements routines that make this data structure work,
+notably routines for the epimorphism on the radical factor, data structures for subgroups, as well as for polyclic
+generating sets for solvable matrix (sub)groups.
+<p>
+The code is still experimental, but should be as stable as the underlying
+packages.
+<p>
+It is copyright (C) 2014 by Alexander Hulpke and released under version 2
+and version 3 of the GPL. (It is a bad habit to include copies of the GPL in
+software, as it can easily be found under
+<a href="http://gnu.org/licenses/gpl.html">http://gnu.org/licenses/gpl.html</a>.)
+<p>
+If you were able to install the prerequisite package <font face="Gill Sans,Helvetica,Arial">recog</font>, you will
+have no problems in installing <font face="Gill Sans,Helvetica,Arial">matgrp</font>, which is plain <font face="Gill Sans,Helvetica,Arial">GAP</font> code.
+<p>
+<p>
+<h2><a name="SECT001">1.1 Usage</a></h2>
+<p><p>
+There is basically just one operation of interest. The package implements a
+method for <code>FittingFreeLiftSetup</code> that applies to matrix groups over finite
+fields, or over residue class rings of the integers.
+<p>
+<pre>
+gap&gt; gens:=[ [ [ -28, 3, 9 ], [ 0, -1, -6 ], [ 3, 0, 1 ] ],   
+&gt;   [ [ -1, 0, 0 ], [ -9, 1, 3 ], [ -3, 0, -1 ] ], 
+&gt;   [ [ 0, 0, 1 ], [ 1, 0, 9 ], [ 0, 1, 0 ] ] ];
+gap&gt; g:=Group(List(gens,x-&gt;x*One(Integers mod 89))); 
+&lt;matrix group with 3 generators&gt;
+gap&gt; ffs:=FittingFreeLiftSetup(g);;
+gap&gt; Size(Image(ffs.factorhom));
+704880
+gap&gt; RelativeOrders(ffs.pcgs);
+[ 11, 2, 2, 2, 89, 89 ]
+gap&gt; h:=Group(List(gens,x-&gt;x*One(Integers mod 2403)));
+&lt;matrix group with 3 generators&gt;
+gap&gt; ffs:=FittingFreeLiftSetup(h);;
+gap&gt; Size(Image(ffs.factorhom));
+704880
+gap&gt; RelativeOrders(ffs.pcgs);
+[ 3, 2, 2, 11, 2, 2, 2, 89, 89, 3, 3, 3, 3, 3, 3, 3, 3, 3 ]
+</pre>
+<p>
+Once this data structure has been computed, library functionality that uses
+it (that is newer versions of Solvable Radical/Fitting free algorithms)
+become available. (Note that method selection does not yet catch all these
+cases and that in particular <code>FittingFreeLiftSetup</code> needs to be called
+explicitly at the start to avoid falling back on generic library methods.)
+<p>
+<pre>
+gap&gt; cl:=ConjugacyClasses(g);;
+gap&gt; Collected(List(cl,Size));
+[ [ 1, 1 ], [ 7920, 1 ], [ 7921, 87 ], [ 704880, 1 ], [ 712890, 87 ], 
+  [ 62029440, 1 ], [ 62037272, 3916 ], [ 62734320, 174 ], [ 63447210, 3741 ] ]
+gap&gt; RepresentativeAction(g,g.1,g.1^g.2);               
+[ [ Z(89)^21, Z(89)^60, 0*Z(89) ], [ Z(89)^22, Z(89)^54, Z(89)^80 ], 
+  [ Z(89)^86, Z(89)^34, Z(89)^35 ] ]
+gap&gt; g.1^last=g.1^g.2; 
+true
+gap&gt; m:=MaximalSubgroupClassReps(h);
+[ &lt;matrix group of size 38683802512903680 with 20 generators&gt;, 
+  &lt;matrix group of size 10550127958064640 with 20 generators&gt;, 
+  &lt;matrix group of size 29012851884677760 with 19 generators&gt;, 
+  &lt;matrix group of size 14651105610240 with 19 generators&gt;, 
+  &lt;matrix group of size 4298200279211520 with 18 generators&gt;, 
+  &lt;matrix group of size 58025703769355520 with 20 generators&gt;, 
+  &lt;matrix group of size 1289460083763456 with 20 generators&gt;, 
+  &lt;matrix group of size 29635190893440 with 20 generators&gt;, 
+  &lt;matrix group of size 28976631095808 with 20 generators&gt; ]
+gap&gt; s:=HallViaRadical(g,[2])[1];
+&lt;matrix group of size 128 with 7 generators&gt;
+gap&gt; n:=NormalizerViaRadical(g,s);
+&lt;matrix group of size 1408 with 7 generators&gt;
+</pre>
+<p>
+<p>
+<h2><a name="SECT002">1.2 Generic Treatment of Matrix groups</a></h2>
+<p><p>
+The ultimate goal of this package surely must be to have <font face="Gill Sans,Helvetica,Arial">GAP</font> work with
+matrix groups in the same way as with permutation groups, simply using
+recognition as underlying structure. This is not yet feasible at the moment
+and will require some larger changes to the system:
+<p>
+<p>
+<dl compact>
+<dt>-<dd>Currently the <code>recog</code> package does not provide a verification routine that
+would guarantee a correct recognition tree.
+<p>
+<dt>-<dd>There needs to be a way to override the default treatment of matrix groups
+using nice monomorphisms, if recognition is available.
+<p>
+<dt>-<dd>In matrix groups, an initial (safety) test for element membership is
+expensive. If the element is not contained in the group, it even might
+require a more robust behaviour of action homomorphisms.
+In practice such a test ought to be trivial, as the element is known to be
+contained in the group from creation. However matrices in <font face="Gill Sans,Helvetica,Arial">GAP</font> do not
+carry ``family'' matrix group with them to make such a membership test easy.
+</dl>
+<p>
+<p>
+<h2><a name="SECT003">1.3 Error Messages</a></h2>
+<p><p>
+In certain situations the current version of the code may produce (one-off)
+error messages. Some reasons for this are:
+<p>
+<p>
+<dl compact>
+<dt>-<dd>The recog package does not yet contain a verify routine.
+<p>
+<dt>-<dd>Heuristics for numbers of random elements are not yet optimal, and
+  fallback code to treat repeated failure, due to unlucky selection of random
+elements, is still missing.
+<p>
+<dt>-<dd>There might be errors left in the required packages used for matrix group
+  recognition.
+</dl>
+<p>
+In general, if a calculation in a <code>matgrp</code> routine produces an error, it can
+be worth trying the command again, more often than not it will run fine. If
+errors arise repeatedly, please inform the package author.
+<p>
+Some error messages issued by the package are:
+<p>
+<p>
+<dl compact>
+<dt><code>Error, Wrong size -- set doall option</code><dd>
+The selection of random radical elements was not enough to generate the
+radical. Set the <code>doall</code> option to <code>true</code> to enforce use of a proven
+generating set.
+<p>
+<dt><code>no vector found</code><dd>
+When trying a permutation representation for a constituent of the radical
+factor, action on vectors found no suitable candidate.
+<p>
+<dt><code>some discrepancy happened</code><dd>
+Recognized group order and computed group order disagree. Likely due to an
+error in constructive recognition.
+<p>
+<dt><code>layerlen</code><dd>Computed and acltual size of a solvable layer disagree. Likely
+due to an error in the randomized stabilizer chain computation.
+</dl>
+<p>
+<p>
+[<a href = "chapters.htm">Up</a>] [<a href = "theindex.htm">Index</a>]
+<P>
+<address>matgrp manual<br>October 2014
+</address></body></html>
