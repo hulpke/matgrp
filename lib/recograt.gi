@@ -1990,7 +1990,7 @@ CHAINTEST(S,"F");
   pcgs!.invpows:=
     List([1..Length(pcgs)],x->List([1..relord[x]-1],y->a[x]^(-y)));
   SetRelativeOrders(pcgs,relord);
-  SetIndicesNormalSteps(pcgs,depths);
+  SetIndicesEANormalSteps(pcgs,depths);
 
   return rec(
     pcgs:=pcgs,
@@ -2066,7 +2066,7 @@ local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,
   ox:=arg[3];
   deponly:=Length(arg)>3 and arg[4];
 
-  dep:=IndicesNormalSteps(pcgs);
+  dep:=IndicesEANormalSteps(pcgs);
   md:=laynums[Length(laynums)]; #the layer depth which we ignore.
 
   z:=ListWithIdenticalEntries(dep[Length(dep)]-1,0);
@@ -2571,10 +2571,10 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       od;
 
       Append(pcgs,upperpcgs[i]);
-      if not HasIndicesNormalSteps(ffpi[i]) then
-	s:=IndicesNormalSteps(FamilyPcgs(PcGroupWithPcgs(ffpi[i])));
+      if not HasIndicesEANormalSteps(ffpi[i]) then
+	s:=IndicesEANormalSteps(FamilyPcgs(PcGroupWithPcgs(ffpi[i])));
       else
-	s:=IndicesNormalSteps(ffpi[i]);
+	s:=IndicesEANormalSteps(ffpi[i]);
       fi;
       s:=s{[1..Length(s)-1]}+p;
       Append(levs,s);
@@ -2637,7 +2637,7 @@ Info(InfoFFMat,2,List(bas,Length),"\n");
 
   pcgs!.decompInfo:=r;
   SetRelativeOrders(pcgs,relord);
-  SetIndicesNormalSteps(pcgs,levs);
+  SetIndicesEANormalSteps(pcgs,levs);
 
   s:=SubgroupNC(g,pcgs);
   SetSize(s,Product(RelativeOrders(pcgs)));
