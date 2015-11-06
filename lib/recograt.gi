@@ -2454,7 +2454,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   it:=CoKernelGensIterator(InverseGeneralMapping(hom));
   bas:=List(moli,x->[]);
-  basrep:=[];
+  basrep:=List(moli,x->[]);
 
   addCleanUpper:=function(i,a)
   local r,p,s,e;
