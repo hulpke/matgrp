@@ -2572,7 +2572,9 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
       Append(pcgs,upperpcgs[i]);
       if not HasIndicesEANormalSteps(ffpi[i]) then
-	s:=IndicesEANormalSteps(FamilyPcgs(PcGroupWithPcgs(ffpi[i])));
+	s:=FamilyPcgs(PcGroupWithPcgs(ffpi[i]));
+	if not IsPcgsElementaryAbelianSeries(s) then Error("not EA pcgs");fi;
+	s:=IndicesEANormalSteps(s);
       else
 	s:=IndicesEANormalSteps(ffpi[i]);
       fi;
