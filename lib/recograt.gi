@@ -1298,7 +1298,8 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
   bas:=MTX.BasesCompositionSeries(mo);
   dims:=List(bas,Length);
   if ForAll([2..Length(bas)],x->IsSubset(bas[x],bas[x-1])) then
-    bas:=bas[Length(bas)];
+    basn:=List([2..Length(bas)],x->Filtered(bas[x],y->not y in bas[x-1]));
+    bas:=Concatenation(basn);
   else
     a:=ShallowCopy(bas[2]); # 1 is empty
     p:=3;
