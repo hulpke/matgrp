@@ -1298,7 +1298,8 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
   bas:=MTX.BasesCompositionSeries(mo);
   dims:=List(bas,Length);
   if ForAll([2..Length(bas)],x->IsSubset(bas[x],bas[x-1])) then
-    bas:=bas[Length(bas)];
+    basn:=List([2..Length(bas)],x->Filtered(bas[x],y->not y in bas[x-1]));
+    bas:=Concatenation(basn);
   else
     a:=ShallowCopy(bas[2]); # 1 is empty
     p:=3;
@@ -2251,22 +2252,27 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
 
   #TODO: Better kernel gens by random selection
   sz:=Size(G)/Size(Image(factorhom));
-  it:=CoKernelGensIterator(InverseGeneralMapping(factorhom));
-  k:=Filtered(List([1..csi.genum],x->CSINiceGens(csi,x)),x->IsOne(ImagesRepresentative(factorhom,x)));
-  if sz>1 then
-    stop:=true;
-    repeat
-      for i in [1..3*Length(Factors(sz))] do
-	if not IsDoneIterator(it) then
-	  x:=NextIterator(it);
-	  if not IsOne(x) and not x in k then
-	    Add(k,x);
+  if Size(Image(factorhom))=1 then
+    # solvable
+    k:=GeneratorsOfGroup(G);
+  else
+    it:=CoKernelGensIterator(InverseGeneralMapping(factorhom));
+    k:=Filtered(List([1..csi.genum],x->CSINiceGens(csi,x)),x->IsOne(ImagesRepresentative(factorhom,x)));
+    if sz>1 then
+      stop:=true;
+      repeat
+	for i in [1..3*Length(Factors(sz))] do
+	  if not IsDoneIterator(it) then
+	    x:=NextIterator(it);
+	    if not IsOne(x) and not x in k then
+	      Add(k,x);
+	    fi;
 	  fi;
-	fi;
-      od;
-      if sz>1 and Length(k)<Length(Factors(sz)) then stop:=false; fi; # work around issue
-      if ValueOption("doall")=true then stop:=false;fi;
-    until stop or IsDoneIterator(it);
+	od;
+	if sz>1 and Length(k)<Length(Factors(sz)) then stop:=false; fi; # work around issue
+	if ValueOption("doall")=true then stop:=false;fi;
+      until stop or IsDoneIterator(it);
+    fi;
   fi;
 
   Info(InfoGenSS,3,"|k|=",Length(k));
