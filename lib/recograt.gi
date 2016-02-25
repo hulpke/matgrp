@@ -1121,37 +1121,6 @@ end);
 
 #TODO: Detect Nonsolvable permuters (via perms) and leave out of pool
 
-goodbase:=[];
-CHAINTEST:=function(X,str)
-  return;
-#Print("TST:",List(BaseStabilizerChain(X).points,y->Position(goodbase.points,y)),"\n");
-#if Size(X)<>Size(Group(X!.stronggens)) then Error("EEE"); fi;
-  while X<>false do
-    #if IsBound(X!.stronggens) and
-    #  Length(X!.layergens)>Length(Factors(Size(X))) then
-    #  Error("UGH");
-    #fi;
-    if not X!.orb!.orbit[1] in goodbase.points then
-      Error("new point!");
-    fi;
-    #if Length(X!.orb!.gens)<>Length(Set(X!.orb!.gens)) then
-    #  Error("duplicate!");
-    #fi;
-    #if IsBound(X!.opt) and IsBound(X!.opt.StrictlyUseCandidates) and
-    #  X!.opt.StrictlyUseCandidates=false then Error("eh5!"); fi;
-
-    if IsBound(X!.orb!.gensi) and List(X!.orb!.gens,Inverse)<>X!.orb!.gensi then
-      Error(str,"inverse!");
-    fi;
-    if IsBound(X!.orb!.gensi) and ForAny(X!.orb!.schreiergen,IsInt)  and
-      Maximum(Filtered(X!.orb!.schreiergen,IsInt))>Length(X!.orb!.gensi)
-      then
-      Error("length!");
-    fi;
-    X:=X!.stab;
-  od;
-end;
-
 BasePointsActionsOrbitLengthsStabilizerChain:=function(c)
 local l,o;
   l:=[];
@@ -1387,7 +1356,8 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
 	    orb:=trymultipleorbits(bas{p},fct,limit);
 	  fi;
 	  if orb=fail then
-	    Error("even too long in dual");
+	    Info(InfoFFMat,2,"even too long in dual");
+	    return rec(points:=[],ops:=[]);
 	  else
 	    Info(InfoFFMat,2,"dual ");
 	  fi;
@@ -1432,7 +1402,7 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
     od;
 
     if a<>fail then
-      gens:=use[a[2]].gens;
+      gens:=ShallowCopy(use[a[2]].gens);
       Add(gens,a[3]);
       use:=use{[1..a[2]-1]};
       total:=Product(List(use,x->Length(x.orb)));
@@ -1640,7 +1610,38 @@ MATGRP_AddGeneratorToStabilizerChain:=
 
 SolvableBSGS:=function(arg)
 local CBase, normalizingGenerator,df,ops,firstmoved,i,
-solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,stabs,n,strongs,stronglevs,laynums,slvec,layerzero,p,laynum,layers,sel,vals,stronglayers,layervecs,slpval,slp,baspts,levp,blocksz,lstrongs,lstrongsinv,bl,opt,check,primes,shortlim,orb,orbs,j,sz;
+solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,stabs,n,strongs,stronglevs,laynums,slvec,layerzero,p,laynum,layers,sel,vals,stronglayers,layervecs,slpval,slp,baspts,levp,blocksz,lstrongs,lstrongsinv,bl,opt,check,primes,shortlim,orb,orbs,j,sz,goodbase,CHAINTEST,orblens;
+
+  goodbase:=[];
+  CHAINTEST:=function(X,str)
+      #  return;
+  #Print("TST:",List(BaseStabilizerChain(X).points,y->Position(goodbase.points,y)),"\n");
+  #if Size(X)<>Size(Group(X!.stronggens)) then Error("EEE"); fi;
+    while X<>false do
+      #if IsBound(X!.stronggens) and
+      #  Length(X!.layergens)>Length(Factors(Size(X))) then
+      #  Error("UGH");
+      #fi;
+      if not X!.orb!.orbit[1] in goodbase.points then
+	Error("new point!");
+      fi;
+      #if Length(X!.orb!.gens)<>Length(Set(X!.orb!.gens)) then
+      #  Error("duplicate!");
+      #fi;
+      #if IsBound(X!.opt) and IsBound(X!.opt.StrictlyUseCandidates) and
+      #  X!.opt.StrictlyUseCandidates=false then Error("eh5!"); fi;
+
+      if IsBound(X!.orb!.gensi) and List(X!.orb!.gens,Inverse)<>X!.orb!.gensi then
+	Error(str,"inverse!");
+      fi;
+      if IsBound(X!.orb!.gensi) and ForAny(X!.orb!.schreiergen,IsInt)  and
+	Maximum(Filtered(X!.orb!.schreiergen,IsInt))>Length(X!.orb!.gensi)
+	then
+	Error("length!");
+      fi;
+      X:=X!.stab;
+    od;
+  end;
 
   gens:=arg[Minimum(2,Length(arg))];
   if IsGroup(gens) then
