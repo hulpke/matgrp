@@ -8,16 +8,16 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.3",
+Version := "0.4",
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "4/11/2015",
+Date := "2/25/2015",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
 ##  The archive file name *must be changed* with each version of the archive
 ##  (and probably somehow contain the package name and version).
-ArchiveURL := "http://www.math.colostate.edu/~hulpke/matgrp/matgrp03",
+ArchiveURL := "http://www.math.colostate.edu/~hulpke/matgrp/matgrp04",
 
 ##  All provided formats as list of file extensions, separated by white
 ##  space or commas.
@@ -170,7 +170,7 @@ BannerString := "Matrix Group Interface routines by A. Hulpke\n\
 ##  *Optional*: Here you can list some keyword related to the topic 
 ##  of the package.
 # Keywords := ["Smith normal form", "p-adic", "rational matrix inversion"]
-Keywords := ["matrix group","solvable radical"]
+Keywords := ["matrix group","solvable radical","fitting free"]
 
 ));
 
