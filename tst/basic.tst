@@ -1,11 +1,11 @@
 gap> START_TEST("matgrp basic.tst");
+gap> SetAssertionLevel(0);SetInfoLevel(InfoRecog,0);
 gap> gens:=[ [ [ -28, 3, 9 ], [ 0, -1, -6 ], [ 3, 0, 1 ] ],
 > [ [ -1, 0, 0 ], [ -9, 1, 3 ], [ -3, 0, -1 ] ],
 > [ [ 0, 0, 1 ], [ 1, 0, 9 ], [ 0, 1, 0 ] ] ];;
 gap> g:=Group(List(gens,x->x*One(Integers mod 89)));
 <matrix group with 3 generators>
 gap> ffs:=FittingFreeLiftSetup(g);;
-F dim=   3 field=89  0
 gap> Size(Image(ffs.factorhom));
 704880
 gap> Product(RelativeOrders(ffs.pcgs));
@@ -13,8 +13,6 @@ gap> Product(RelativeOrders(ffs.pcgs));
 gap> h:=Group(List(gens,x->x*One(Integers mod 2403)));
 <matrix group with 3 generators>
 gap> ffs:=FittingFreeLiftSetup(g);;
-F dim=   3 field=3  0
-F dim=   3 field=89  0
 gap> Size(Image(ffs.factorhom));
 704880
 gap> ffs:=FittingFreeLiftSetup(h);;
