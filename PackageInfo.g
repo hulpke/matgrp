@@ -73,7 +73,7 @@ Status := "dev",
 ##  the updating of package information on the GAP Website, and inclusion
 ##  and updating of the package in the GAP distribution.
 ##  
-README_URL := "http://www.math.colostate.edu/~hulpke/matgrp/README",
+README_URL := "http://www.math.colostate.edu/~hulpke/matgrp/README.md",
 PackageInfoURL := "http://www.math.colostate.edu/~hulpke/matgrp/PackageInfo.g",
 
 ##  Here you  must provide a short abstract explaining the package content 
