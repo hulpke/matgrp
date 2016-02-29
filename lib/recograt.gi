@@ -1,6 +1,8 @@
 # basic setup for matrix fitting free.
-# Alexander Hulpke, May 2014
-# This is experimental code
+# Alexander Hulpke, February 2016
+# This code might still need some stability improvements
+
+SetInfoLevel(InfoRecog,0); # recog will print status messages otherwise
 
 # mod to genss -- rings
 FindHomMethodsMatrix.Nonfield := function(ri, G)
@@ -702,7 +704,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 	  od;
 
 	  dgp:=Image(csi.permap[d]);
-	  if AssertionLevel()>0 then
+	  if AssertionLevel()>2 then
 	    hom:=GroupHomomorphismByImages(gp,dgp,gens,genims);
 	  else
 	    hom:=GroupHomomorphismByImagesNC(gp,dgp,gens,genims);
@@ -763,7 +765,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 Info(InfoFFMat,2,"Found Layer ",d,"\n");
 	      Add(pools[poolnum],d);
 	      isoms[d]:=isom*hom;
-              Assert(2,IsBijective(isoms[d]));
+              Assert(3,IsBijective(isoms[d]));
 	      # newly included component -- the generators *are* simply the
 	      # images
 	      genimgs[kn][i]:=List(genims,
@@ -1025,7 +1027,7 @@ Info(InfoFFMat,2,"Images for ",j," ",c,"\n");
     od;
   od;
 
-  if IsPermGroup(csi.group) and AssertionLevel()>0 then
+  if IsPermGroup(csi.group) and AssertionLevel()>2 then
     hom:=GroupHomomorphismByImages(csi.group,d,a,b);
   else
     RUN_IN_GGMBI:=true; # hack to skip Nice treatment
@@ -1061,7 +1063,7 @@ local csi,pools,result,i,e,a,img,b,dp,d,kn,perm,l;
     for l in [1..Length(pools[i])] do
       b:=List(dci.goodgens[pools[i][l]],x->x^elm);
       dp:=CSIDepthElm(csi,b[1]);
-      Assert(1,ForAll(b,x->CSIDepthElm(csi,x)=dp));
+      Assert(2,ForAll(b,x->CSIDepthElm(csi,x)=dp));
       perm[l]:=Position(pools[i],dp);
 
       d:=List(dci.goodgens[pools[i][l]],
@@ -2941,7 +2943,7 @@ local d,gens,imgs,rest;
     imgs:=List(gens,x->CSIElementAct(d,x));
   fi;
 
-  if IsPermGroup(U) and AssertionLevel()>0 then
+  if IsPermGroup(U) and AssertionLevel()>2 then
     rest:=GroupHomomorphismByImages(U,Range(hom),gens,imgs);
   else
     RUN_IN_GGMBI:=true; # hack to skip Nice treatment
