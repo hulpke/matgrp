@@ -116,7 +116,7 @@ PackageWWWHome := "http://www.math.colostate.edu/~hulpke/matgrp",
 PackageDoc := rec(
   # use same as in GAP            
   BookName := "matgrp",
-  ArchiveURLSubset := [ "doc/manual.pdf"],
+  ArchiveURLSubset := [ "doc", "htm" ],
   PDFFile := "doc/manual.pdf",
   HTMLStart:="htm/chapters.htm",
   # the path to the .six file used by GAP's help system
