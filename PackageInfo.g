@@ -11,13 +11,15 @@ Subtitle := "Matric Group Interface Routines",
 Version := "0.5",
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "29/10/2018",
+Date := "10/09/2018",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
 ##  The archive file name *must be changed* with each version of the archive
 ##  (and probably somehow contain the package name and version).
-ArchiveURL := "http://www.math.colostate.edu/~hulpke/matgrp/matgrp04",
+ArchiveURL := Concatenation(
+  # avoid duplication of version number
+  "http://www.math.colostate.edu/~hulpke/matgrp/matgrp",~.Version),
 
 ##  All provided formats as list of file extensions, separated by white
 ##  space or commas.
