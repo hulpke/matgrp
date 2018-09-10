@@ -72,8 +72,14 @@ Status := "deposited",
 ##  the updating of package information on the GAP Website, and inclusion
 ##  and updating of the package in the GAP distribution.
 ##  
-README_URL := "http://www.math.colostate.edu/~hulpke/matgrp/README",
+README_URL := "http://www.math.colostate.edu/~hulpke/matgrp/README.md",
 PackageInfoURL := "http://www.math.colostate.edu/~hulpke/matgrp/PackageInfo.g",
+
+SourceRepository := rec( 
+  Type := "git", 
+  URL := "https://github.com/hulpke/matgrp/"
+),
+IssueTrackerURL := Concatenation( ~.SourceRepository.URL, "/issues" ),
 
 ##  Here you  must provide a short abstract explaining the package content 
 ##  in HTML format (used on the package overview Web page) and an URL 
@@ -109,7 +115,7 @@ PackageWWWHome := "http://www.math.colostate.edu/~hulpke/matgrp",
 PackageDoc := rec(
   # use same as in GAP            
   BookName := "matgrp",
-  ArchiveURLSubset := [ "doc/manual.pdf"],
+  ArchiveURLSubset := [ "doc", "htm" ],
   PDFFile := "doc/manual.pdf",
   HTMLStart:="htm/chapters.htm",
   # the path to the .six file used by GAP's help system
@@ -138,7 +144,6 @@ Dependencies := rec(
     ["genss", ">= 1.3"],
     ["Orb", ">= 3.4"],
     ["AtlasRep", ">= 1.4.0"],
-    ["recogbase", ">= 1.0"],
   ],
   SuggestedOtherPackages := [],
   ExternalConditions := []
