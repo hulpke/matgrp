@@ -145,7 +145,6 @@ Dependencies := rec(
     ["genss", ">= 1.3"],
     ["Orb", ">= 3.4"],
     ["AtlasRep", ">= 1.4.0"],
-    ["recogbase", ">= 1.0"],
   ],
   SuggestedOtherPackages := [],
   ExternalConditions := []
