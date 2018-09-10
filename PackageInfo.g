@@ -8,10 +8,10 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.4",
+Version := "0.5",
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "25/02/2015",
+Date := "29/10/2018",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
@@ -51,10 +51,9 @@ Persons := [
 ##    "accepted"      for successfully refereed packages
 ##    "deposited"     for packages for which the GAP developers agreed 
 ##                    to distribute them with the core GAP system
-##    "dev"           for development versions of packages 
 ##    "other"         for all other packages
 ##
-Status := "dev",
+Status := "deposited",
 
 ##  You must provide the next two entries if and only if the status is 
 ##  "accepted":
