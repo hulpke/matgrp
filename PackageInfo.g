@@ -173,6 +173,8 @@ Autoload := false,
 BannerString := "Matrix Group Interface routines by A. Hulpke\n\
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
 
+TestFile := "tst/testall.g",
+
 ##  *Optional*: Here you can list some keyword related to the topic 
 ##  of the package.
 # Keywords := ["Smith normal form", "p-adic", "rational matrix inversion"]
