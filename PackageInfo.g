@@ -8,10 +8,10 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.5",
+Version := "0.51",
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "10/09/2018",
+Date := "17/09/2018",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
@@ -160,6 +160,8 @@ Dependencies := rec(
 ## tests of other packages, as given above, will be done automatically and
 ## need not be included here.)
 AvailabilityTest := ReturnTrue,
+
+TestFile := "tst/testall.g",
 
 ##  Suggest here if the package should be *automatically loaded* when GAP is 
 ##  started.  This should usually be 'false'. Say 'true' only if your package 
