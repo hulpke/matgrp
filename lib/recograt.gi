@@ -2594,10 +2594,14 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   # convert to compact type
   gens:=GeneratorsOfGroup(g);
-  f:=FamilyObj(One(r));
-  gens:=List(gens,x->MakeZmodnZMat(f,List(x,r->List(r,Int))));
-  gnew:=Group(gens);
-  if HasSize(g) then SetSize(gnew,Size(g));fi;
+  if not ForAll(gens,IsZmodnZMat) then
+    f:=FamilyObj(One(r));
+    gens:=List(gens,x->MakeZmodnZMat(f,List(x,r->List(r,Int))));
+    gnew:=Group(gens);
+    if HasSize(g) then SetSize(gnew,Size(g));fi;
+  else
+    gnew:=g;
+  fi;
 
   m:=Size(r);
   # the prime power factors occurring
