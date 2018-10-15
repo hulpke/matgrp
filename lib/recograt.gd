@@ -1,6 +1,12 @@
-# basic setup for matrix fitting free.
-# Alexander Hulpke, May 2014
-# This is experimental code
+#############################################################################
+##
+#W  recograt.gd                 matgrp package               Alexander Hulpke
+##
+##
+#Y  Copyright (C)  2014-18, Alexander Hulpke
+##
+##  basic setup for matrix fitting free.
+##
 
 DeclareInfoClass("InfoFFMat");
 

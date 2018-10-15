@@ -88,6 +88,30 @@ gap> n:=NormalizerViaRadical(g,s);
 \endexample
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Section{Matrices over Residue class rings}
+
+To improve performance, the package provides a rudinemntary data type for
+matrices over residue class rings (which in the long run ought to be replaced
+by a better implementation in the main system), that yields a somewhat faster
+multiplication than using lists of lists.
+
+The command `ZmodnzMat(ring,intmat)' will create a matrix in this compact
+format, for best performance convert matrices into this format before
+creating a group.
+
+\beginexample
+gap> r:=Integers mod 2403;
+(Integers mod 2403)
+gap> gens:=List(gens,x->ZmodnZMat(r,x));
+[ [ [ 2375, 3, 9 ], [ 0, 2402, 2397 ], [ 3, 0, 1 ] ]*ZmodnZObj(1,2403),
+  [ [ 2402, 0, 0 ], [ 2394, 1, 3 ], [ 2400, 0, 2402 ] ]*ZmodnZObj(1,2403),
+  [ [ 0, 0, 1 ], [ 1, 0, 9 ], [ 0, 1, 0 ] ]*ZmodnZObj(1,2403) ]
+gap> h:=Group(gens);
+<matrix group with 3 generators>
+gap> ffs:=FittingFreeLiftSetup(h);;
+\endexample
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Section{Generic Treatment of Matrix groups}
 
 The ultimate goal of this package surely must be to have {\GAP} work with

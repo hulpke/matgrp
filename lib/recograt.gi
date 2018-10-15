@@ -1,6 +1,12 @@
-# basic setup for matrix fitting free.
-# Alexander Hulpke, February 2016
-# This code might still need some stability improvements
+#############################################################################
+##
+#W  recograt.gd                 matgrp package               Alexander Hulpke
+##
+##
+#Y  Copyright (C)  2014-18, Alexander Hulpke
+##
+##  basic setup for matrix fitting free.
+##
 
 SetInfoLevel(InfoRecog,0); # recog will print status messages otherwise
 
@@ -2570,13 +2576,13 @@ end;
 
 UnreduceModM:=Error;
 
-
 InstallMethod(FittingFreeLiftSetup,"residue class rings",true,
   [IsMatrixGroup],0,
 function(g)
 local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   upperpcgs,upperexp,it,e,moli,pli,j,idx,depths,pcgs,levs,relord,idmat,
-  fac,idmats,bas,basrep,s,triv,addPcElement,procrels,addCleanUpper,k,l,bl,stack;
+  fac,idmats,bas,basrep,s,triv,addPcElement,procrels,addCleanUpper,k,l,bl,stack,
+  gens,gnew;
 
   triv:=TrivialSubgroup(CyclicGroup(2));
   r:=DefaultFieldOfMatrixGroup(g);
@@ -2585,6 +2591,18 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     TryNextMethod();
   fi;
   idmat:=IdentityMat(Length(One(g)),1);
+
+  # convert to compact type
+  gens:=GeneratorsOfGroup(g);
+  if not ForAll(gens,IsZmodnZMat) then
+    f:=FamilyObj(One(r));
+    gens:=List(gens,x->MakeZmodnZMat(f,List(x,r->List(r,Int))));
+    gnew:=Group(gens);
+    if HasSize(g) then SetSize(gnew,Size(g));fi;
+  else
+    gnew:=g;
+  fi;
+
   m:=Size(r);
   # the prime power factors occurring
   f:=List(Collected(Factors(m)),x->x[1]^x[2]);
@@ -2612,9 +2630,9 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	Add(fac,fac[Length(fac)]/p);
       od;
     fi;
-    hom:=List(GeneratorsOfGroup(g),x->ReduceModM(x,p));
+    hom:=List(gens,x->ReduceModM(x,p));
     if ForAll(hom,IsOne) then
-      hom:=GroupHomomorphismByFunction(g,Group(()),x->());
+      hom:=GroupHomomorphismByFunction(gnew,Group(()),x->());
       Info(InfoFFMat,2,"alltrivial ",p,"\n");
       Add(ffp,[]);
       Add(homs,hom);
@@ -2623,7 +2641,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       Add(ffppc,hom);
     else
       img:=Group(hom);
-      hom:=GroupHomomorphismByFunction(g,img,ReduceModMFunc(p),false,
+      hom:=GroupHomomorphismByFunction(gnew,img,ReduceModMFunc(p),false,
 	    x->UnreduceModM(x,m));
       SetImagesSource(hom,img);
       Add(homs,hom);
@@ -2634,7 +2652,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     fi;
   od;
   if Length(ffhoms)=0 then
-    hom:=GroupHomomorphismByFunction(g,Group(()),x->());
+    hom:=GroupHomomorphismByFunction(gnew,Group(()),x->());
   else
     d:=List(ffhoms,Image);
     d:=DirectProduct(d);
@@ -2647,8 +2665,8 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	      od;
 	      return p;
 	    end;
-    a:=List(GeneratorsOfGroup(g),elmimg);
-    hom:=GroupHomomorphismByFunction(g,SubgroupNC(d,a),elmimg);
+    a:=List(gens,elmimg);
+    hom:=GroupHomomorphismByFunction(gnew,SubgroupNC(d,a),elmimg);
   fi;
 
   # we can't rescue the existing pcgs for the factors as we will not know
@@ -2739,7 +2757,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   # conjugates
   for k in stack do
-    for j in GeneratorsOfGroup(g) do
+    for j in gens do
       a:=k^j;
 
       for i in [1..Length(ffpi)] do
@@ -2826,7 +2844,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   repeat until procrels();
 
-Info(InfoFFMat,2,List(bas,Length),"\n");
+  Info(InfoFFMat,2,List(bas,Length),"\n");
 
   for i in [2..Length(bas)] do
     if IsBound(bas[i]) then

@@ -8,10 +8,10 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.51",
+Version := "0.6",
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "17/09/2018",
+Date := "16/10/2018",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
@@ -174,6 +174,8 @@ Autoload := false,
 ##  command line options `-b' or `-q' are given).
 BannerString := "Matrix Group Interface routines by A. Hulpke\n\
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+
+TestFile := "tst/testall.g",
 
 ##  *Optional*: Here you can list some keyword related to the topic 
 ##  of the package.
