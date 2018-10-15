@@ -97,10 +97,9 @@ end);
 
 InstallOtherMethod(InverseOp,"ZmodnZMat",true,[IsZmodnZMat],0,
 function(a)
-local fam,d;
+local fam;
   fam:=ElementsFamily(ElementsFamily(FamilyObj(a)));
-  d:=DeterminantMat(a![1]);
-  a:=InverseOp(1/d*a![1]);
+  a:=InverseOp(a![1]);
   a:=a mod Characteristic(fam);
   return MakeZmodnZMat(fam,a);
 end);
@@ -172,6 +171,11 @@ end);
 InstallMethod(\=,"ZmodnZVec",IsIdenticalObj,[IsZmodnZVec,IsZmodnZVec],0,
 function(a,b)
   return a![1]=b![1];
+end);
+
+InstallMethod(\=,"ZmodnZVec",true,[IsZmodnZVec,IsList],0,
+function(a,b)
+  Error("compare1");
 end);
 
 InstallMethod(\<,"ZmodnZVec",IsIdenticalObj,[IsZmodnZVec,IsZmodnZVec],0,
