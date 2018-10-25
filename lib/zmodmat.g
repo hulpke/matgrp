@@ -37,6 +37,9 @@ end;
 
 ZmodnZMat:=function(r,mat)
 local fam;
+  if not IsInt(mat[1][1]) then
+    mat:=List(mat,r->List(r,Int));
+  fi;
   fam:=FamilyObj(One(r));
   mat :=mat mod Characteristic(fam);
   return MakeZmodnZMat(fam,mat);
@@ -97,10 +100,9 @@ end);
 
 InstallOtherMethod(InverseOp,"ZmodnZMat",true,[IsZmodnZMat],0,
 function(a)
-local fam,d;
+local fam;
   fam:=ElementsFamily(ElementsFamily(FamilyObj(a)));
-  d:=DeterminantMat(a![1]);
-  a:=InverseOp(1/d*a![1]);
+  a:=InverseOp(a![1]);
   a:=a mod Characteristic(fam);
   return MakeZmodnZMat(fam,a);
 end);
@@ -172,6 +174,12 @@ end);
 InstallMethod(\=,"ZmodnZVec",IsIdenticalObj,[IsZmodnZVec,IsZmodnZVec],0,
 function(a,b)
   return a![1]=b![1];
+end);
+
+InstallMethod(\=,"ZmodnZVec",IsIdenticalObj,[IsZmodnZVec,IsList],0,
+function(a,b)
+  b:=List(b,Int);
+  return a![1]=b;
 end);
 
 InstallMethod(\<,"ZmodnZVec",IsIdenticalObj,[IsZmodnZVec,IsZmodnZVec],0,
@@ -268,6 +276,16 @@ function(a,b)
 local fam;
   fam:=ElementsFamily(ElementsFamily(FamilyObj(b)));
   a:=a![1]*b![1];
+  a:=a mod Characteristic(fam);
+  return MakeZmodnZVec(fam,a);
+end);
+
+InstallOtherMethod(\*,"ZmodnZVec*ZmodnZMat",IsElmsColls,[IsList,IsZmodnZMat],0,
+function(a,b)
+local fam;
+  fam:=ElementsFamily(ElementsFamily(FamilyObj(b)));
+  a:=List(a,Int);
+  a:=a*b![1];
   a:=a mod Characteristic(fam);
   return MakeZmodnZVec(fam,a);
 end);
