@@ -37,6 +37,9 @@ end;
 
 ZmodnZMat:=function(r,mat)
 local fam;
+  if not IsInt(mat[1][1]) then
+    mat:=List(mat,r->List(r,Int));
+  fi;
   fam:=FamilyObj(One(r));
   mat :=mat mod Characteristic(fam);
   return MakeZmodnZMat(fam,mat);
