@@ -2713,7 +2713,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	e:=List(a,x->List(x,y->y![1] mod moli[i]));
 	e:=e-idmat;
 	e:=fac[i]*Concatenation(e);
-	e:=e*Z(p)^0;
+	e:=ImmutableVector(GF(p),e*Z(p)^0);
 	if not IsZero(e) then
 	  if IsBound(bas[i]) and Length(bas[i])>0 then
 	    s:=SolutionMat(bas[i],e);
