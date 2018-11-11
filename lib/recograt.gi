@@ -1308,7 +1308,7 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
       else
         p:=p-1;
       fi;
-      orb:=OrbitsDomain(Group(gens),NormedVectors(VectorSpace(f,bas{[1..dims[p]]},Zero(bas[1]))),OnLines);
+      orb:=OrbitsDomain(Group(gens),NormedRowVectors(VectorSpace(f,bas{[1..dims[p]]},Zero(bas[1]))),OnLines);
       orb:=Filtered(orb,x->Length(x)>1);
       Sort(orb,function(a,b) return Length(a)>Length(b);end);
       vec:=List(orb,x->x[1]);
