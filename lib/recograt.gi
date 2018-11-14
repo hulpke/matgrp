@@ -2326,7 +2326,7 @@ function(g)
 local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   upperpcgs,upperexp,it,e,moli,pli,j,idx,depths,pcgs,levs,relord,idmat,
   fac,idmats,bas,basrep,basrepi,s,triv,addPcElement,procrels,addCleanUpper,
-  k,l,bl,stack,gens,gnew;
+  k,l,bl,stack,stacks,gens,gnew,layerlimit,fertig;
 
   triv:=TrivialSubgroup(CyclicGroup(2));
   r:=DefaultFieldOfMatrixGroup(g);
@@ -2423,6 +2423,12 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   upperpcgs:=List([1..Length(ffpi)],x->[]);
 
+  # Do we have an upper limit for the space on each layer?
+  layerlimit:=ValueOption("layerlimit");
+  if layerlimit=fail then
+    layerlimit:=Length(One(g))^2; # full matrix space
+  fi;
+
   it:=CoKernelGensIterator(InverseGeneralMapping(hom));
   bas:=List(moli,x->[]);
   basrep:=List(moli,x->[]);
@@ -2461,15 +2467,17 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	e:=fac[i]*Concatenation(e);
 	e:=ImmutableVector(GF(p),e*Z(p)^0);
 	if not IsZero(e) then
-	  if IsBound(bas[i]) and Length(bas[i])>0 then
+          if bot and IsBound(bas[i]) and Length(bas[i])=layerlimit then
+            # Bottom layer is full, nothing else needed to do
+            a:=fail; 
+	  elif IsBound(bas[i]) and Length(bas[i])>0 then
 	    s:=SolutionMat(bas[i],e);
 	    if s=fail then
 	      Add(bas[i],e);
 	      Add(basrep[i],a);
               Add(basrepi[i],a^-1);
 	      if added=fail then added:=i;fi;
-	      a:=a^p;
-	      #a:=One(a);
+              if not bot then a:=a^p;fi; # no need to do if on bottom
 	    else
 	      s:=List(s,Int);
 	      #s:=LinearCombinationPcgs(basrep[i],s);
@@ -2477,15 +2485,16 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
               # avoid inverse by imediately dividing off
               for j in [Length(s),Length(s)-1..1] do
                  if not IsZero(s[j]) then
-                  if bot then
-                    # multiplication is addition of p-residues
-                    tmp:=(basrepi[i][j]![1]*s[j]-s[j]*One(basrepi[i][j]![1])+a![1]);
-                    tmp:=tmp mod Characteristic(a);
-                    tmp:=MakeZmodnZMat(ElementsFamily(ElementsFamily(FamilyObj(a))),tmp);
-#if tmp<>basrepi[i][j]^s[j]*a then Error("wrong");fi;
-                    a:=tmp;
-                  else
+                  if not bot then
                     a:=basrepi[i][j]^s[j]*a;
+                  else
+                    # else case is not needed, as we are on the bottom :-)
+                    a:=fail;
+#                    # multiplication is addition of p-residues
+#                    tmp:=(basrepi[i][j]![1]*s[j]-s[j]*One(basrepi[i][j]![1])+a![1]);
+#                    tmp:=tmp mod Characteristic(a);
+#                    tmp:=MakeZmodnZMat(ElementsFamily(ElementsFamily(FamilyObj(a))),tmp);
+#                    a:=tmp;
                   fi;
                 fi;
               od;
@@ -2495,28 +2504,36 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	    basrep[i]:=[a];
             basrepi[i]:=[a^-1];
 	    if added=fail then added:=i;fi;
-	    #a:=One(a);
-	    a:=a^p;
+            if not bot then a:=a^p;fi; # no need to do if on bottom
 	  fi;
 	fi;
       od;
       return added;
     end;
 
-  stack:=[];
+  fertig:=false;
+  stacks:=[];
   repeat
     a:=NextIterator(it);
     if not IsOne(a) then
 
+      #Print(Length(stacks),", a=",a,"\n");
       for i in [1..Length(ffpi)] do
 	a:=addCleanUpper(i,a);
       od;
 
-      addPcElement(a,2);
-      Add(stack,a);
+      if addPcElement(a,2)=true then
+        AddSet(stacks,a);
+      fi;
 
     fi;
-  until IsDoneIterator(it);
+    fertig:=ForAll([2..Length(moli)],x->Length(basrep[x])=layerlimit);
+    if fertig then Print("fertisch!\n");fi;
+  until IsDoneIterator(it) or fertig;
+
+  if fertig then stack:=[];fi;
+
+  stack:=ShallowCopy(stacks); # we'll add to the list
 
   # conjugates
   for k in stack do
@@ -2524,18 +2541,26 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       a:=k^j;
 
       for i in [1..Length(ffpi)] do
-	a:=addCleanUpper(i,a);
+        a:=addCleanUpper(i,a);
       od;
 
-      # base length
-      bl:=List([2..Length(moli)],x->Length(bas[x]));
-      addPcElement(a,2);
-      if ForAny([2..Length(moli)],x->Length(bas[x])>bl[x-1]) then
-	Add(stack,a);
+      if not a in stacks then
+
+        AddSet(stacks,a);
+
+        # old base length
+        bl:=List([2..Length(moli)],x->Length(bas[x]));
+        addPcElement(a,2);
+        if ForAny([2..Length(moli)],x->Length(bas[x])>bl[x-1]) then
+          if not a in stack then Add(stack,a); fi;
+        fi;
       fi;
 
     od;
   od;
+
+  Unbind(stack);
+  Unbind(stacks);
 
   pcgs:=[];
   relord:=[];
@@ -2545,20 +2570,22 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     if Length(upperpcgs[i])>0 then
 
       r:=RelativeOrders(ffpi[i]);
-      for j in [1..Length(upperpcgs[i])] do
-	a:=upperpcgs[i][j]^r[j];
-	for k in [i..Length(ffp)] do
-	  a:=addCleanUpper(k,a);
-	od;
-        addPcElement(a,2);
-	for l in Concatenation(pcgs,upperpcgs[i]) do
-	  a:=upperpcgs[i][j]^l;
-	  for k in [i..Length(ffp)] do
-	    a:=addCleanUpper(k,a);
-	  od;
-	  addPcElement(a,2);
-	od;
-      od;
+      if not fertig then
+        for j in [1..Length(upperpcgs[i])] do
+          a:=upperpcgs[i][j]^r[j];
+          for k in [i..Length(ffp)] do
+            a:=addCleanUpper(k,a);
+          od;
+          addPcElement(a,2);
+          for l in Concatenation(pcgs,upperpcgs[i]) do
+            a:=upperpcgs[i][j]^l;
+            for k in [i..Length(ffp)] do
+              a:=addCleanUpper(k,a);
+            od;
+            addPcElement(a,2);
+          od;
+        od;
+      fi;
 
       Append(pcgs,upperpcgs[i]);
       if not HasIndicesEANormalSteps(ffpi[i]) then
@@ -2576,12 +2603,14 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   od;
   Add(levs,Length(pcgs)+1);
 
-  # conjugation relations in linear bit
+  # conjugation relations in linear bits. Will rarely add new elements (so the
+  # danger of running through multiple times is minimal).
   procrels:=function()
   local i,j,k,l,a,b;
     b:=true;
     for i in [2..Length(moli)] do
-      for j in [i..Length(moli)] do
+      # if j>=Length(moli)-1+@ the conjugate is guaranteed the same
+      for j in [i..Length(moli)-i+1] do
 	if IsBound(basrep[i]) and IsBound(basrep[j]) then
 	  for k in basrep[i] do
 	    for l in basrep[j] do
@@ -2605,7 +2634,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     return b;
   end;
 
-  repeat until procrels();
+  repeat until fertig or procrels();
 
   Info(InfoFFMat,2,List(bas,Length));
 
