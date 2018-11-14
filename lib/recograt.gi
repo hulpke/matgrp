@@ -1832,7 +1832,12 @@ CHAINTEST(S,"F");
     Add(pcgs,x);
     a:=Set(Filtered(StrongGenerators(S),x->not x in strongs));
     a:=Difference(a,List([0..Order(x)],y->x^y));
-    if Length(a)>0 then Error("nanu");fi;
+    if Length(a)>0 then 
+      # redo
+      Info(InfoFFMat,1,"nanu-redo");
+      return SolvableBSGS(arg[1],arg[2],arg[3]);
+      Error("nanu");
+    fi;
     Append(strongs,[x]);
     Append(stronglevs,ListWithIdenticalEntries(1,n+1-xp));
     #if n+1-xp in depths then 
