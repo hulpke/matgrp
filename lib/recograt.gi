@@ -2706,7 +2706,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   end;
 
   addPcElement:=function(a,start)
-    local i,p,e,s,added;
+    local i,j,p,e,s,added;
       added:=fail;
       for i in [start..Length(moli)] do
 	p:=pli[idx[i]];
@@ -2725,8 +2725,12 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	      #a:=One(a);
 	    else
 	      s:=List(s,Int);
-	      s:=LinearCombinationPcgs(basrep[i],s);
-	      a:=LeftQuotient(s,a);
+	      #s:=LinearCombinationPcgs(basrep[i],s);
+	      #a:=LeftQuotient(s,a);
+              # avoid inverse by imediately dividing off
+              for j in [Length(s),Length(s)-1..1] do
+                a:=basrep[i][j]^(p-s[j])*a;
+              od;
 	    fi;
 	  else
 	    bas[i]:=[e];
