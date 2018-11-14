@@ -1529,7 +1529,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
 
   goodbase:=[];
   CHAINTEST:=function(X,str)
-      #  return;
+    return;
     while X<>false do
       #if IsBound(X!.stronggens) and
       #  Length(X!.layergens)>Length(Factors(Size(X))) then
@@ -1800,7 +1800,7 @@ Info(InfoFFMat,2,"n");
   while xp<=Length(gens) do
 
     if S<>false then
-CHAINTEST(S,"E");
+      #CHAINTEST(S,"E");
       oldsz:=Size(S);
       Info(InfoFFMat,2,"ProcessiNg ",xp," ",Size(S),"\n");
 
@@ -1827,7 +1827,7 @@ if Size(S)=oldsz then Error("no change!");fi;
 
 #if S!.opt.StrictlyUseCandidates=false then Error("eh3!"); fi;
 
-CHAINTEST(S,"F");
+    #CHAINTEST(S,"F");
 
     Add(pcgs,x);
     a:=Set(Filtered(StrongGenerators(S),x->not x in strongs));
