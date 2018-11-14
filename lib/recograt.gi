@@ -2581,8 +2581,8 @@ InstallMethod(FittingFreeLiftSetup,"residue class rings",true,
 function(g)
 local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   upperpcgs,upperexp,it,e,moli,pli,j,idx,depths,pcgs,levs,relord,idmat,
-  fac,idmats,bas,basrep,s,triv,addPcElement,procrels,addCleanUpper,k,l,bl,stack,
-  gens,gnew;
+  fac,idmats,bas,basrep,basrepi,s,triv,addPcElement,procrels,addCleanUpper,
+  k,l,bl,stack,gens,gnew;
 
   triv:=TrivialSubgroup(CyclicGroup(2));
   r:=DefaultFieldOfMatrixGroup(g);
@@ -2682,6 +2682,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   it:=CoKernelGensIterator(InverseGeneralMapping(hom));
   bas:=List(moli,x->[]);
   basrep:=List(moli,x->[]);
+  basrepi:=List(moli,x->[]);
 
   addCleanUpper:=function(i,a)
   local r,p,s,e;
@@ -2720,6 +2721,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	    if s=fail then
 	      Add(bas[i],e);
 	      Add(basrep[i],a);
+              Add(basrepi[i],a^-1);
 	      if added=fail then added:=i;fi;
 	      a:=a^p;
 	      #a:=One(a);
@@ -2729,12 +2731,13 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	      #a:=LeftQuotient(s,a);
               # avoid inverse by imediately dividing off
               for j in [Length(s),Length(s)-1..1] do
-                a:=basrep[i][j]^(p-s[j])*a;
+                a:=basrepi[i][j]^s[j]*a;
               od;
 	    fi;
 	  else
 	    bas[i]:=[e];
 	    basrep[i]:=[a];
+            basrepi[i]:=[a^-1];
 	    if added=fail then added:=i;fi;
 	    #a:=One(a);
 	    a:=a^p;
