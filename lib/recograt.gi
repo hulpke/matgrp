@@ -2446,9 +2446,10 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   end;
 
   addPcElement:=function(a,start)
-    local i,j,p,e,s,added;
+    local i,j,p,e,s,added,bot,tmp;
       added:=fail;
       for i in [start..Length(moli)] do
+        bot:=i=Length(moli); # last step -- powers are multiples
 	p:=pli[idx[i]];
 	e:=List(a,x->List(x,y->y![1] mod moli[i]));
 	e:=e-idmat;
@@ -2470,7 +2471,18 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	      #a:=LeftQuotient(s,a);
               # avoid inverse by imediately dividing off
               for j in [Length(s),Length(s)-1..1] do
-                a:=basrepi[i][j]^s[j]*a;
+                 if not IsZero(s[j]) then
+                  if bot then
+                    # multiplication is addition of p-residues
+                    tmp:=(basrepi[i][j]![1]*s[j]-s[j]*One(basrepi[i][j]![1])+a![1]);
+                    tmp:=tmp mod Characteristic(a);
+                    tmp:=MakeZmodnZMat(ElementsFamily(ElementsFamily(FamilyObj(a))),tmp);
+#if tmp<>basrepi[i][j]^s[j]*a then Error("wrong");fi;
+                    a:=tmp;
+                  else
+                    a:=basrepi[i][j]^s[j]*a;
+                  fi;
+                fi;
               od;
 	    fi;
 	  else
