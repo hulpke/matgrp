@@ -109,15 +109,27 @@ end);
 
 InstallMethod(\^,"ZmodnZMat,int",true,[IsZmodnZMat,IsInt],0,
 function(a,e)
-local fam;
-  if e<0 then a:=InverseOp(a);e:=-e;
-  elif e=0 then return One(a);
+local fam,pow,f;
+  if e=0 then return One(a);
+  elif e<0 then a:=InverseOp(a);e:=-e;
   fi;
 
   fam:=ElementsFamily(ElementsFamily(FamilyObj(a)));
-  a:=a![1]^e;
-  a:=a mod Characteristic(fam);
-  return MakeZmodnZMat(fam,a);
+
+  #a:=a![1]^e;
+  # now use the repeated squaring method (right-to-left)
+  pow := One(a![1]);
+  f := 2 ^ (LogInt( e, 2 ) + 1);
+  while 1 < f  do
+    pow := pow*pow mod Characteristic(fam);
+    f := QuoInt( f, 2 );
+    if f <= e  then
+      pow := pow*a![1] mod Characteristic(fam);
+      e := e - f;
+    fi;
+  od;
+
+  return MakeZmodnZMat(fam,pow);
 end);
 
 InstallOtherMethod(AdditiveInverseOp,"ZmodnZMat",true,[IsZmodnZMat],0,
