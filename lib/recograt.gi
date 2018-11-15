@@ -2517,21 +2517,23 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     a:=NextIterator(it);
     if not IsOne(a) then
 
-      #Print(Length(stacks),", a=",a,"\n");
       for i in [1..Length(ffpi)] do
 	a:=addCleanUpper(i,a);
       od;
 
-      if addPcElement(a,2)=true then
+      bl:=List([2..Length(moli)],x->Length(bas[x]));
+      addPcElement(a,2);
+      if ForAny([2..Length(moli)],x->Length(bas[x])>bl[x-1]) then
         AddSet(stacks,a);
       fi;
 
     fi;
     fertig:=ForAll([2..Length(moli)],x->Length(basrep[x])=layerlimit);
-    if fertig then Print("fertisch!\n");fi;
+if fertig then Print("fertisch!\n");fi;
   until IsDoneIterator(it) or fertig;
 
   if fertig then stack:=[];fi;
+  Info(InfoFFMat,2,"layerdimsc:",List(bas,Length));
 
   stack:=ShallowCopy(stacks); # we'll add to the list
 
@@ -2558,6 +2560,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
     od;
   od;
+  Info(InfoFFMat,2,"layerdimsb:",List(bas,Length));
 
   Unbind(stack);
   Unbind(stacks);
@@ -2603,6 +2606,8 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   od;
   Add(levs,Length(pcgs)+1);
 
+  Info(InfoFFMat,2,"layerdimsa:",List(bas,Length));
+
   # conjugation relations in linear bits. Will rarely add new elements (so the
   # danger of running through multiple times is minimal).
   procrels:=function()
@@ -2636,7 +2641,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   repeat until fertig or procrels();
 
-  Info(InfoFFMat,2,List(bas,Length));
+  Info(InfoFFMat,2,"layerdims:",List(bas,Length));
 
   for i in [2..Length(bas)] do
     if IsBound(bas[i]) then
