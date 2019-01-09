@@ -1371,6 +1371,7 @@ MATGRP_StabilizerChainInner:=
     else
         if (Length(S!.orb) > 50 or S!.orb!.depth > 5) and
            S!.opt.OrbitsWithLog then
+            Error("ARGH!");
             Info(InfoGenSS, 3, "Trying to make Schreier tree shallower (depth=",
                  S!.orb!.depth,")...");
             merk := Length(S!.orb!.gens);
@@ -1473,8 +1474,8 @@ MATGRP_AddGeneratorToStabilizerChain:=
     #      the identity, then we have to prolong the chain
     if r.S <> false then   # case (1)
         SS := r.S;
-        Info( InfoGenSS, 2, "Adding new generator to stabilizer chain ",
-              "in layer ", SS!.layer, "..." );
+        Info( InfoGenSS, 2, "Adding new generator to stab. chain ",
+              "in layer ", SS!.layer, " from ",Length(SS!.stronggens) );
         Add(SS!.stronggens,r.rem);
         Add(SS!.layergens,Length(SS!.stronggens));
         AddGeneratorsToOrbit(SS!.orb,[r.rem]);
@@ -1529,7 +1530,6 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
 
   goodbase:=[];
   CHAINTEST:=function(X,str)
-    return;
     while X<>false do
       #if IsBound(X!.stronggens) and
       #  Length(X!.layergens)>Length(Factors(Size(X))) then
@@ -1543,6 +1543,14 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
       #fi;
       #if IsBound(X!.opt) and IsBound(X!.opt.StrictlyUseCandidates) and
       #  X!.opt.StrictlyUseCandidates=false then Error("eh5!"); fi;
+
+      if IsBound(X!.orb!.gens) and Length(X!.orb!.gens)<>Length(Factors(Size(X))) then
+        Error("length!");
+      fi;
+
+      if IsBound(X!.orb!.gens) and Length(Difference(X!.orb!.gens,strongs))>0 then
+        Error("XTRA!");
+      fi;
 
       if IsBound(X!.orb!.gensi) and List(X!.orb!.gens,Inverse)<>X!.orb!.gensi then
 	Error(str,"inverse!");
@@ -1799,35 +1807,63 @@ Info(InfoFFMat,2,"n");
   stronglevs:=[];
   while xp<=Length(gens) do
 
+
     if S<>false then
       #CHAINTEST(S,"E");
       oldsz:=Size(S);
-      Info(InfoFFMat,2,"ProcessiNg ",xp," ",Size(S),"\n");
+      Info(InfoFFMat,2,"ProcessiNg ",xp," ",Size(S));
 
 
 #if Length(StrongGenerators(S))>Length(Factors(Size(S))) then Error("more2\n");fi;
       x:=gens[xp];
       x:=SiftGroupElement(S,x).rem;
       #SiftGroupElement(S,x);
+
       if not IsOne(x) then
 	normalizingGenerator(x);
       fi;
     else
       x:=gens[1];
       # OrbitsWithLog will add powers as strong generators to make the tree shallower.
-      # This messes with the correspondemcd of strong generators and pcgs elements
+      # This messes with the correspondence of strong generators and pcgs elements
 
-      S:=StabilizerChain(Group(x),
-        rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true,OrbitsWithLog := false));
-#if Length(StrongGenerators(S))>Length(Factors(Size(S))) then Error("more3\n");fi;
+      S:=StabilizerChain(Group(x),rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true,
+        OrbitsWithLog := false,RandomStabGens:=1,Size:=Order(x)));
+
+      # Remove those ~!@#$ extra generators (powers of x) that are added 
+      # to make the tree shallower, but cause problems here.
+      strongs:=[x];
+
+      a:=S;
+
+      while a<>false do 
+        a!.stronggens:=ShallowCopy(strongs);
+        a!.layergens:=[1];
+        if Length(a!.orb!.gens)>0 then
+          if a!.orb!.gens<>strongs then
+            a!.orb:=Orb(ShallowCopy(strongs),a!.orb[1],a!.orb!.op);
+            a!.orb!.gensi:=List(a!.orb!.gens,Inverse);
+            repeat
+              Enumerate(a!.orb);
+            until IsClosed(a!.orb);
+            a!.orb!.depth:=Size(a!.orb)-1;
+            if Length(a!.orb)=1 then
+              a!.orb!.schreiergen:=ShallowCopy(strongs);
+            else
+              a!.orb!.schreiergen:=[];
+            fi;
+          fi;
+        fi;
+        a:=a!.stab;
+      od;
+
+      #CHAINTEST(S,"F2");
+
+      strongs:=[];
+      
     fi;
 
-if Size(S)=oldsz then Error("no change!");fi;
-#if ForAny([1..xp-1],a->not SiftGroupElement(S,pcgs[a]).isone) then Error("mists!");fi; 
-
-#if S!.opt.StrictlyUseCandidates=false then Error("eh3!"); fi;
-
-    #CHAINTEST(S,"F");
+    if Size(S)=oldsz then Error("no change!");fi;
 
     Add(pcgs,x);
     a:=Set(Filtered(StrongGenerators(S),x->not x in strongs));
@@ -1835,17 +1871,20 @@ if Size(S)=oldsz then Error("no change!");fi;
     if Length(a)>0 then 
       # redo
       Info(InfoFFMat,1,"nanu-redo");
+      #Error("nanu");
       return SolvableBSGS(arg[1],arg[2],arg[3]);
-      Error("nanu");
     fi;
     Append(strongs,[x]);
+
+    #CHAINTEST(S,"F");
+
+
     Append(stronglevs,ListWithIdenticalEntries(1,n+1-xp));
     #if n+1-xp in depths then 
     #  Add(stabs,StructuralCopy(S));
     #fi;
     xp:=xp+1;
   od;
-
 
   pcgs:=Reversed(pcgs);
 
