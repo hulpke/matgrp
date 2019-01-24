@@ -1841,17 +1841,17 @@ Info(InfoFFMat,2,"n");
         a!.layergens:=[1];
         if Length(a!.orb!.gens)>0 then
           if a!.orb!.gens<>strongs then
-            a!.orb:=Orb(ShallowCopy(strongs),a!.orb[1],a!.orb!.op);
+            a!.orb:=Orb(ShallowCopy(strongs),a!.orb[1],a!.orb!.op,rec(schreier:=true));
             a!.orb!.gensi:=List(a!.orb!.gens,Inverse);
             repeat
               Enumerate(a!.orb);
             until IsClosed(a!.orb);
             a!.orb!.depth:=Size(a!.orb)-1;
-            if Length(a!.orb)=1 then
-              a!.orb!.schreiergen:=ShallowCopy(strongs);
-            else
-              a!.orb!.schreiergen:=[];
-            fi;
+            #if Length(a!.orb)=1 then
+            #  a!.orb!.schreiergen:=ShallowCopy(strongs);
+            #else
+            #  a!.orb!.schreiergen:=[];
+            #fi;
           fi;
         fi;
         a:=a!.stab;
