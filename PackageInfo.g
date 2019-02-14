@@ -12,6 +12,7 @@ Version := "0.60",
 
 ##  Release date of the current version in dd/mm/yyyy format.
 Date := "15/11/2018",
+License := "GPL-2.0 OR GPL-3.0", # SPDX ID, see https://spdx.org
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
