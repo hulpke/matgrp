@@ -211,9 +211,7 @@ local fam;
   return ZmodnZObj(fam,a![1][p]);
 end);
 
-
-
-InstallMethod(\[\],"ZmodnZMat",true,[IsZmodnZMat,IsPosInt],0,
+InstallOtherMethod(\[\],"ZmodnZMat",true,[IsZmodnZMat,IsPosInt],0,
 function(a,p)
 local fam;
   fam:=ElementsFamily(ElementsFamily(FamilyObj(a)));
