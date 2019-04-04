@@ -1626,7 +1626,8 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
   FUNCSPACEHASH:=[]; # needed in base point selection code
   CBase:=StabilizerChain(a,opt);
   if sz<>fail and Size(CBase)<sz then
-    Error("Wrong size -- set `doall' option");
+    Info(InfoWarning,1,"Wrong size -- redo with `doall' option");
+    return fail;
   fi;
 
   primes:=Set(Factors(Size(CBase)));
@@ -2275,6 +2276,9 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
     sbs:=rec(pcgs:=[],depths:=[1],relord:=[],pcisom:=IsomorphismPcGroup(sbs),radical:=sbs);
   else
     sbs:=SolvableBSGS(G,k,sz);
+    while sbs=fail do
+      sbs:=SolvableBSGS(G,k,sz:doall);
+    od;
     rad:=SubgroupNC(G,sbs.pcgs);
     SetSize(rad,Product(RelativeOrders(sbs.pcgs)));
     sbs.radical:=rad;
