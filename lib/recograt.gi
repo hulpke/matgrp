@@ -2571,8 +2571,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       fi;
 
     fi;
-    fertig:=ForAll([2..Length(moli)],x->Length(basrep[x])=layerlimit);
-#if fertig then Print("fertisch!\n");fi;
+    fertig:=Length(moli)>1 and ForAll([2..Length(moli)],x->Length(basrep[x])=layerlimit);
   until IsDoneIterator(it) or fertig;
 
   if fertig then stack:=[];fi;
