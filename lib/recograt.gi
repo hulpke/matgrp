@@ -1695,7 +1695,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
     else
       prime:=pow;
     fi;
-    Info(InfoFFMat,2,"Relative order ",pow," prime ",prime,"\n");
+    Info(InfoFFMat,2,"Relative order ",pow," prime ",prime);
 
     process:=[w];
     layergens:=[];
@@ -1703,7 +1703,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
     for g in process do
       sift:=SiftGroupElement(S,g);
       if not sift.isone then
-Info(InfoFFMat,2,"SS=",Size(S)," ",Length(U),"\n");
+        Info(InfoFFMat,2,"SS=",Size(S)," ",Length(U));
 
         for h in layergens do
 	  comm:=Comm(g,h);
@@ -2366,7 +2366,7 @@ UnreduceModM:=Error;
 InstallMethod(FittingFreeLiftSetup,"residue class rings",true,
   [IsMatrixGroup],0,
 function(g)
-local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
+local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   upperpcgs,upperexp,it,e,moli,pli,j,idx,depths,pcgs,levs,relord,idmat,
   fac,idmats,bas,basrep,basrepi,s,triv,addPcElement,procrels,addCleanUpper,
   k,l,bl,stack,stacks,gens,gnew,layerlimit,fertig;
@@ -2523,8 +2523,6 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
               if not bot then a:=a^p;fi; # no need to do if on bottom
 	    else
 	      s:=List(s,Int);
-	      #s:=LinearCombinationPcgs(basrep[i],s);
-	      #a:=LeftQuotient(s,a);
               # avoid inverse by imediately dividing off
               for j in [Length(s),Length(s)-1..1] do
                  if not IsZero(s[j]) then
@@ -2559,6 +2557,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   repeat
     a:=NextIterator(it);
     if not IsOne(a) then
+      ao:=a;
 
       for i in [1..Length(ffpi)] do
 	a:=addCleanUpper(i,a);
@@ -2567,7 +2566,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       bl:=List([2..Length(moli)],x->Length(bas[x]));
       addPcElement(a,2);
       if ForAny([2..Length(moli)],x->Length(bas[x])>bl[x-1]) then
-        AddSet(stacks,a);
+        AddSet(stacks,ao);
       fi;
 
     fi;
@@ -2579,7 +2578,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   stack:=ShallowCopy(stacks); # we'll add to the list
 
-  # conjugates
+  # G-conjugates
   for k in stack do
     for j in gens do
       a:=k^j;
@@ -2616,7 +2615,8 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
       r:=RelativeOrders(ffpi[i]);
       if not fertig then
-        for j in [1..Length(upperpcgs[i])] do
+        j:=1;
+        while j<=Length(upperpcgs[i]) do
           a:=upperpcgs[i][j]^r[j];
           for k in [i..Length(ffp)] do
             a:=addCleanUpper(k,a);
@@ -2629,6 +2629,7 @@ local r,m,f,a,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
             od;
             addPcElement(a,2);
           od;
+          j:=j+1;
         od;
       fi;
 
