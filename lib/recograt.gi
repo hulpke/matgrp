@@ -2272,8 +2272,8 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
   # TODO: Proper test
 
   if ForAll(k,IsOne) then
-    sbs:=TrivialSubgroup(G);
-    sbs:=rec(pcgs:=[],depths:=[1],relord:=[],pcisom:=IsomorphismPcGroup(sbs),radical:=sbs);
+    rad:=TrivialSubgroup(G);
+    sbs:=rec(pcgs:=[],depths:=[1],relord:=[],pcisom:=IsomorphismPcGroup(rad),radical:=rad);
   else
     sbs:=SolvableBSGS(G,k,sz);
     while sbs=fail do
@@ -2290,6 +2290,7 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
     sbs.pcisom:=hom;
   fi;
   sbs.csi:=csi;
+  SetKernelOfMultiplicativeGeneralMapping(factorhom,rad);
   sbs.factorhom:=factorhom;
   RecogDecompinfoHomomorphism(factorhom)!.LiftSetup:=sbs;
 
