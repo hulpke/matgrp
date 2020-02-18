@@ -50,6 +50,12 @@ function(a)
   Print(a![1],"*ZmodnZObj(1,",Characteristic(ElementsFamily(ElementsFamily(FamilyObj(a)))),")");
 end);
 
+InstallMethod(ViewString,"ZmodnZMat",true,[IsZmodnZMat],0,
+function(a)
+  return Concatenation(String(a![1]),"*ZmodnZObj(1,",
+    String(Characteristic(ElementsFamily(ElementsFamily(FamilyObj(a))))),")");
+end);
+
 InstallOtherMethod(One,"ZmodnZMat",true,[IsZmodnZMat],0,
 function(a)
   return MakeZmodnZMat(ElementsFamily(ElementsFamily(FamilyObj(a))),One(a![1]));
@@ -82,6 +88,11 @@ end);
 InstallOtherMethod(Length,"ZmodnZMat",true,[IsZmodnZMat],0,
 function(a)
   return Length(a![1]);
+end);
+
+InstallOtherMethod(IsOne,"ZmodnZMat",true,[IsZmodnZMat],0,
+function(a)
+  return IsOne(a![1]);
 end);
 
 InstallOtherMethod(DimensionsMat,"ZmodnZMat",true,[IsZmodnZMat],0,
