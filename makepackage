@@ -1,4 +1,4 @@
-(cd ..;tar zcvf matgrp.tar.gz matgrp/{PackageInfo.g,init.g,read.g,README.md,lib,htm} matgrp/doc/{manual.ind,manual.pdf,matgrp.tex,manual.tex,manual.six,manual.bbl} matgrp/tst/*)
+(cd ..;COPYFILE_DISABLE=1 tar zcvf matgrp.tar.gz matgrp/{PackageInfo.g,init.g,read.g,README.md,lib,htm} matgrp/doc/{manual.ind,manual.pdf,matgrp.tex,manual.tex,manual.six,manual.bbl} matgrp/tst/*)
 mv ../matgrp.tar.gz `grep "^Version" PackageInfo.g | awk -F\" '{print "../matgrp" $2 ".tar.gz"}'`
 cp README.md ~/Creative/Homepage/matgrp/README
 cp PackageInfo.g ~/Creative/Homepage/matgrp/
