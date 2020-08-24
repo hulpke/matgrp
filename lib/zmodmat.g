@@ -66,6 +66,9 @@ function(a)
   return MakeZmodnZMat(ElementsFamily(ElementsFamily(FamilyObj(a))),Zero(a![1]));
 end);
 
+InstallOtherMethod(RowsOfMatrix,true,[IsZmodnZMat],0,
+  a->List(a,x->x));
+
 InstallMethod(\+,"ZmodnZMat",IsIdenticalObj,[IsZmodnZMat,IsZmodnZMat],0,
 function(a,b)
 local fam;
