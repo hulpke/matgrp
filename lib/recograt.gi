@@ -1,6 +1,6 @@
 #############################################################################
 ##
-#W  recograt.gd                 matgrp package               Alexander Hulpke
+#W  recograt.gi                 matgrp package               Alexander Hulpke
 ##
 ##
 #Y  Copyright (C)  2014-18, Alexander Hulpke
@@ -2614,11 +2614,11 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   for i in [1..Length(ffp)] do
     if Length(upperpcgs[i])>0 then
 
-      r:=RelativeOrders(ffpi[i]);
+      #r:=RelativeOrders(ffpi[i]);
       if not fertig then
         j:=1;
         while j<=Length(upperpcgs[i]) do
-          a:=upperpcgs[i][j]^r[j];
+          a:=upperpcgs[i][j]^(RelativeOrders(ffpi[i])[j]);
           for k in [i..Length(ffp)] do
             a:=addCleanUpper(k,a);
           od;
