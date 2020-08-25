@@ -8,12 +8,12 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.63",
+Version := "0.64",
 
 License := "GPL-2.0 OR GPL-3.0", # SPDX ID, see https://spdx.org
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "18/03/2020",
+Date := "25/08/2020",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
