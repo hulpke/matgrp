@@ -9,7 +9,7 @@ Download from
 http://www.math.colostate.edu/~hulpke/matgrp/
 
 It is Copyright (C) 2016-20 by Alexander Hulpke
-It is licensed under GPL v2 or v3. (see http://gnu.org/licenses/gpl.html)
+It is licensed under GPL v2 or v3. (see https://gnu.org/licenses/gpl.html)
 
 At this point no methods for functions (such as ConjugacyClasses) exist
 that automatically apply to matrix groups. However if calling
