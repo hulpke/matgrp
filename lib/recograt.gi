@@ -10,7 +10,30 @@
 
 SetInfoLevel(InfoRecog,0); # recog will print status messages otherwise
 
-# mod to genss -- rings
+# mod to recog -- rings
+
+# newer recog has some changes to these internal APIs
+if not IsBound(RIFac) and IsBound(ImageRecogNode) then
+  RIFac := ImageRecogNode;
+  RIKer := KernelRecogNode;
+fi;
+
+if IsBound(BindRecogMethod) then
+
+BindRecogMethod(FindHomMethodsMatrix, "Nonfield",
+"catch matrix groups defined over nonfield rings",
+function(ri, G)
+  if IsBound(ri!.ring) and not IsBound(ri!.field) then
+    Error("hereIAm");
+  fi;
+  return false;
+end);
+
+AddMethod( FindHomDbMatrix, FindHomMethodsMatrix.Nonfield, 5100);
+
+
+else
+
 FindHomMethodsMatrix.Nonfield := function(ri, G)
   if IsBound(ri!.ring) and not IsBound(ri!.field) then
     Error("hereIAm");
@@ -21,6 +44,8 @@ end;
 AddMethod( FindHomDbMatrix, FindHomMethodsMatrix.Nonfield,
   5100, "Nonfield",
           "catch matrix groups defined over nonfield rings" );
+
+fi;
 
 OnSubmoduleCosets:=function(cset,g)
 local v;
