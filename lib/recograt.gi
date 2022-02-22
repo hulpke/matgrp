@@ -1644,8 +1644,8 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
   if IsPerm(gens[1]) then
     a:=Length(MovedPoints(gens));
     bound := Int( LogInt( Maximum(1,a ^ 5), 3 ) / 2 );
-  elif IsMatrix(gens[1]) then
-    a:=Length(gens[1]); # dimension
+  elif IsMatrixOrMatrixObj(gens[1]) then
+    a:=NrRows(gens[1]); # dimension
 
     # we would need proper log
     #bound := Int( (8.55*Log(a+1,10)+0.36 );
@@ -2164,13 +2164,15 @@ local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,
 end;
 
 InstallMethod(ExponentsOfPcElement,"matrix pcgs",IsCollsElms,
-  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,IsMatrix],
+  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
+   IsMatrixOrMatrixObj],
 function(pcgs,x)
   return MatPcgsExponents(pcgs,pcgs!.laynums,x);
 end);
 
 InstallOtherMethod(ExponentsOfPcElement,"matrix pcgs,indices",IsCollsElmsX,
-  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,IsMatrix,IsList],
+  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
+   IsMatrixOrMatrixObj,IsList],
 function(pcgs,x,inds)
 local i,j,sel,lay,ip,sl,r,use;
   # is it a layer?
@@ -2208,7 +2210,8 @@ local i,j,sel,lay,ip,sl,r,use;
 end);
 
 InstallMethod(DepthOfPcElement,"matrix pcgs",IsCollsElms,
-  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,IsMatrix],
+  [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
+  IsMatrixOrMatrixObj],
 function(pcgs,x)
 local e;
   e:=MatPcgsExponents(pcgs,pcgs!.laynums,x,true);
@@ -2352,10 +2355,17 @@ ReduceModM:=function(a,m)
       od;
       return b;
     fi;
-  elif IsZmodnZObjNonprime(a) then
-    a:=a![1];
+  elif IsMatrixObj(a) then
+    a:=List(a,x->List(x,Int));
+  else
+    Error("weird object");
   fi;
-  return MyZmodnZObj(a,m);
+  r:=Integers mod m;
+  if IsPrimeInt(m) and m<=65536 then
+    return ImmutableMatrix(r,a*One(r));
+  else
+    return Matrix(r,a*One(r));
+  fi;
 end;
 
 ReduceModMFunc:=function(m)
@@ -2382,9 +2392,8 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   # convert to compact type
   gens:=GeneratorsOfGroup(g);
-  if not ForAll(gens,IsZmodnZMat) then
-    f:=FamilyObj(One(r));
-    gens:=List(gens,x->MakeZmodnZMat(f,List(x,r->List(r,Int))));
+  if not ForAll(gens,IsMatrixObj) then
+    gens:=List(gens,x->Matrix(r,One(r)*List(x,r->List(r,Int))));
     gnew:=Group(gens);
     if HasSize(g) then SetSize(gnew,Size(g));fi;
   else
@@ -2769,7 +2778,8 @@ local e,s,i,p,exp;
 end;
 
 InstallMethod(ExponentsOfPcElement,"matrix residue pcgs",IsCollsElms,
-  [IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs,IsMatrix],
+  [IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs,
+    IsMatrixOrMatrixObj],
 function(pcgs,x)
   return ExponentsResiduePcgs(pcgs!.decompInfo,x);
 end);

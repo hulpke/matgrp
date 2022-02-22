@@ -7,5 +7,5 @@
 ##
 #############################################################################
 
-ReadPackage("matgrp","lib/zmodmat.g");
+#ReadPackage("matgrp","lib/zmodmat.g");
 ReadPackage("matgrp","lib/recograt.gi");
