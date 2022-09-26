@@ -6,7 +6,7 @@ It is provided as a package, as it requires other packages (recog, and its
 dependencies) to be installed.
 
 Download from
-http://www.math.colostate.edu/~hulpke/matgrp/
+https://www.math.colostate.edu/~hulpke/matgrp/
 
 It is Copyright (C) 2016-20 by Alexander Hulpke
 It is licensed under GPL v2 or v3. (see https://gnu.org/licenses/gpl.html)

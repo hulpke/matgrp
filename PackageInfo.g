@@ -21,7 +21,7 @@ Date := "01/03/2022",
 ##  (and probably somehow contain the package name and version).
 ArchiveURL := Concatenation(
   # avoid duplication of version number
-  "http://www.math.colostate.edu/~hulpke/matgrp/matgrp",~.Version),
+  "https://www.math.colostate.edu/~hulpke/matgrp/matgrp",~.Version),
 
 ##  All provided formats as list of file extensions, separated by white
 ##  space or commas.
@@ -41,7 +41,7 @@ Persons := [
     IsAuthor := true,
     IsMaintainer := true,
     Email := "hulpke@math.colostate.edu",
-    WWWHome := "http://www.math.colostate.edu/~hulpke",
+    WWWHome := "https://www.math.colostate.edu/~hulpke/",
     Place := "Fort Collins, CO",
     Institution := Concatenation( [
       "Department of Mathematics, ",
@@ -76,8 +76,8 @@ Status := "deposited",
 ##  the updating of package information on the GAP Website, and inclusion
 ##  and updating of the package in the GAP distribution.
 ##  
-README_URL := "http://www.math.colostate.edu/~hulpke/matgrp/README.md",
-PackageInfoURL := "http://www.math.colostate.edu/~hulpke/matgrp/PackageInfo.g",
+README_URL := "https://www.math.colostate.edu/~hulpke/matgrp/README.md",
+PackageInfoURL := "https://www.math.colostate.edu/~hulpke/matgrp/PackageInfo.g",
 
 SourceRepository := rec( 
   Type := "git", 
@@ -96,7 +96,7 @@ AbstractHTML := "The <span class=\"pkgname\">matgrp</span> package provides \
 an interface to the solvable radical functionality for matrix groups, \
 building on constructive recognition.",
 
-PackageWWWHome := "http://www.math.colostate.edu/~hulpke/matgrp",
+PackageWWWHome := "https://www.math.colostate.edu/~hulpke/matgrp",
                   
 ##  On the GAP Website there is an online version of all manuals in the
 ##  GAP distribution. To handle the documentation of a package it is
