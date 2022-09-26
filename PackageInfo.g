@@ -165,8 +165,8 @@ TestFile := "tst/testall.g",
 ##  If the default banner does not suffice then provide a string that is
 ##  printed when the package is loaded (not when it is autoloaded or if
 ##  command line options `-b' or `-q' are given).
-BannerString := "Matrix Group Interface routines by A. Hulpke\n\
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+BannerString := Concatenation("Matrix Group Interface routines ", ~.Version ," by A. Hulpke\n",
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"),
 
 TestFile := "tst/testall.g",
 
