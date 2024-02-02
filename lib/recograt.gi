@@ -741,7 +741,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 
 	  if d=i then
 	    # pull generator images back in original group
-	    genimgs[kn][i]:=List(genims,x->PreImagesRepresentative(isom,x));
+	    genimgs[kn][i]:=List(genims,x->PreImagesRepresentativeNC(isom,x));
 
 #if ForAny(Flat(genimgs),x->not x in Image(csi.permap[pools[poolnum][1]])) then
 #  Error("imerrD");
@@ -797,7 +797,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 	      # newly included component -- the generators *are* simply the
 	      # images
 	      genimgs[kn][i]:=List(genims,
-	        x->PreImagesRepresentative(isoms[d],x));
+	        x->PreImagesRepresentativeNC(isoms[d],x));
 
 #if ForAny(Flat(genimgs),x->not x in Image(csi.permap[pools[poolnum][1]])) then
   #Error("imerrB");
@@ -905,7 +905,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 			x->ImagesRepresentative(csi.permap[pools[i][l]],
 			  CSIImageHomNr(csi,pools[i][l],x^CSINiceGens(csi,kn))));
 		if isoms[j]<>false then
-		  d:=List(d,x->PreImagesRepresentative(isoms[j],x));
+		  d:=List(d,x->PreImagesRepresentativeNC(isoms[j],x));
 		fi;
 		d:=Image(e[l],CSIAelement(a,localgens,d));
 	      else
@@ -1008,7 +1008,7 @@ local csi,pools,result,i,e,a,img,b,dp,d,kn,perm,l;
 	      x->ImagesRepresentative(csi.permap[dp],
 		CSIImageHomNr(csi,dp,x^elm)));
       if dci.isoms[dp]<>false then
-	d:=List(d,x->PreImagesRepresentative(dci.isoms[dp],x));
+	d:=List(d,x->PreImagesRepresentativeNC(dci.isoms[dp],x));
       fi;
       d:=Image(e[l],CSIAelement(a,dci.poollocalgens[i],d));
       img:=img*d;
@@ -1044,15 +1044,15 @@ end);
 
 #############################################################################
 ##
-#M  PreImagesSet(<hom>,<x>)
+#M  PreImagesSetNC(<hom>,<x>)
 ##
-InstallMethod(PreImagesSet,"for recognition mappings", CollFamRangeEqFamElms,
+InstallMethod(PreImagesSetNC,"for recognition mappings", CollFamRangeEqFamElms,
   [ IsGroupGeneralMapping and
   HasRecogDecompinfoHomomorphism,IsGroup], 0,
 function(hom, U)
 local gens,pre;
   gens:=SmallGeneratingSet(U);
-  pre:=List(gens,x->PreImagesRepresentative(hom,x));
+  pre:=List(gens,x->PreImagesRepresentativeNC(hom,x));
   U:=RecogDecompinfoHomomorphism(hom).LiftSetup;
   U:=SubgroupByFittingFreeData(Source(hom),pre,gens,U.pcgs);
   return U;
@@ -2859,7 +2859,7 @@ local ffu,ff,x;
   if not x in Image(ffu.rest) then
     return false;
   fi;
-  elm:=elm/PreImagesRepresentative(ffu.rest,x);
+  elm:=elm/PreImagesRepresentativeNC(ffu.rest,x);
   elm:=ImagesRepresentative(ff.pcisom,elm);
   if not IsBound(ffu.pcsub) then
     ffu.pcsub:=Subgroup(Image(ff.pcisom),
