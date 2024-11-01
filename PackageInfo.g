@@ -8,12 +8,12 @@ Subtitle := "Matric Group Interface Routines",
 
 ##  See '?Extending: Version Numbers' in GAP help for an explanation
 ##  of valid version numbers.
-Version := "0.70",
+Version := "0.71",
 
 License := "GPL-2.0 OR GPL-3.0", # SPDX ID, see https://spdx.org
 
 ##  Release date of the current version in dd/mm/yyyy format.
-Date := "01/03/2022",
+Date := "01/11/2024",
 
 ##  URL of the archive(s) of the current package release, but *without*
 ##  the format extension(s), like '.zoo', which are given next.
@@ -26,14 +26,14 @@ ArchiveURL := Concatenation(
 ##  All provided formats as list of file extensions, separated by white
 ##  space or commas.
 ##      .tar.gz    the UNIX standard
-##  
+##
 ArchiveFormats := ".tar.gz", # the others are generated automatically
 
 
-##  Information about authors and maintainers. Specify for each person a 
+##  Information about authors and maintainers. Specify for each person a
 ##  record with the following information:
-##  
-##  
+##
+##
 Persons := [
   rec(
     LastName := "Hulpke",
@@ -48,18 +48,18 @@ Persons := [
       "Colorado State University",
       ] )
     )
-  
+
 ],
 
 ##  Status information. Currently the following cases are recognized:
 ##    "accepted"      for successfully refereed packages
-##    "deposited"     for packages for which the GAP developers agreed 
+##    "deposited"     for packages for which the GAP developers agreed
 ##                    to distribute them with the core GAP system
 ##    "other"         for all other packages
 ##
 Status := "deposited",
 
-##  You must provide the next two entries if and only if the status is 
+##  You must provide the next two entries if and only if the status is
 ##  "accepted":
 # format: 'name (place)'
 # CommunicatedBy := "Mike Atkinson (St. Andrews)",
@@ -72,52 +72,52 @@ Status := "deposited",
 ##     - A README file, containing a short abstract about the package
 ##       content and installation instructions.
 ##     - The file you are currently reading or editing!
-##  You must specify URLs for these two files, these allow to automate 
+##  You must specify URLs for these two files, these allow to automate
 ##  the updating of package information on the GAP Website, and inclusion
 ##  and updating of the package in the GAP distribution.
-##  
+##
 README_URL := "https://www.math.colostate.edu/~hulpke/matgrp/README.md",
 PackageInfoURL := "https://www.math.colostate.edu/~hulpke/matgrp/PackageInfo.g",
 
-SourceRepository := rec( 
-  Type := "git", 
+SourceRepository := rec(
+  Type := "git",
   URL := "https://github.com/hulpke/matgrp/"
 ),
 IssueTrackerURL := Concatenation( ~.SourceRepository.URL, "/issues" ),
 
-##  Here you  must provide a short abstract explaining the package content 
-##  in HTML format (used on the package overview Web page) and an URL 
+##  Here you  must provide a short abstract explaining the package content
+##  in HTML format (used on the package overview Web page) and an URL
 ##  for a Webpage with more detailed information about the package
 ##  (not more than a few lines, less is ok):
 ##  Please, use '<span class="pkgname">GAP</span>' and
 ##  '<span class="pkgname">MyPKG</span>' for specifing package names.
-##  
+##
 AbstractHTML := "The <span class=\"pkgname\">matgrp</span> package provides \
 an interface to the solvable radical functionality for matrix groups, \
 building on constructive recognition.",
 
 PackageWWWHome := "https://www.math.colostate.edu/~hulpke/matgrp",
-                  
+
 ##  On the GAP Website there is an online version of all manuals in the
 ##  GAP distribution. To handle the documentation of a package it is
 ##  necessary to have:
-##     - an archive containing the package documentation (in at least one 
+##     - an archive containing the package documentation (in at least one
 ##       of HTML or PDF-format, preferably both formats)
 ##     - the start file of the HTML documentation (if provided), *relative to
 ##       package root*
 ##     - the PDF-file (if provided) *relative to the package root*
-##  For links to other package manuals or the GAP manuals one can assume 
-##  relative paths as in a standard GAP installation. 
-##  Also, provide the information which is currently given in your packages 
+##  For links to other package manuals or the GAP manuals one can assume
+##  relative paths as in a standard GAP installation.
+##  Also, provide the information which is currently given in your packages
 ##  init.g file in the command DeclarePackage(Auto)Documentation
 ##  (for future simplification of the package loading mechanism).
-##  
+##
 ##  Please, don't include unnecessary files (.log, .aux, .dvi, .ps, ...) in
 ##  the provided documentation archive.
-##  
+##
 # in case of several help books give a list of such records here:
 PackageDoc := rec(
-  # use same as in GAP            
+  # use same as in GAP
   BookName := "matgrp",
   ArchiveURLSubset := [ "doc", "htm" ],
   PDFFile := "doc/manual.pdf",
@@ -168,7 +168,7 @@ TestFile := "tst/testall.g",
 BannerString := Concatenation("Matrix Group Interface routines ", ~.Version ," by A. Hulpke\n",
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"),
 
-##  *Optional*: Here you can list some keyword related to the topic 
+##  *Optional*: Here you can list some keyword related to the topic
 ##  of the package.
 # Keywords := ["Smith normal form", "p-adic", "rational matrix inversion"]
 Keywords := ["matrix group","solvable radical","fitting free"]
