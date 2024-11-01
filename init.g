@@ -7,4 +7,14 @@
 ##
 #############################################################################
 
+#I introducing globally the NC versions of PreImages...  
+if not IsBound( PreImagesSetNC ) then 
+    BindGlobal( "PreImagesSetNC", PreImagesSet ); 
+fi; 
+if not IsBound( PreImagesRepresentativeNC ) then 
+    BindGlobal( "PreImagesRepresentativeNC", PreImagesRepresentative ); 
+fi; 
+
+#############################################################################
+
 ReadPackage("matgrp","lib/recograt.gd");
