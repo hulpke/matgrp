@@ -74,10 +74,10 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
 	    nb:=SiftedVector(submodule,nb);
 	    if fcand.ops[k]=OnLines then
 	      fct:=MakeSubmoduleColineAction(submodule);
-	      Add(FUNCSPACEHASH,[fct,submodule]); 
+	      Add(FUNCSPACEHASH,[fct,submodule]);
 	    else
 	      fct:=MakeSubmoduleCosetAction(submodule);
-	      Add(FUNCSPACEHASH,[fct,submodule]); 
+	      Add(FUNCSPACEHASH,[fct,submodule]);
 	    fi;
 	    Add(cand.points,nb);
 	    Add(cand.ops,fct);
@@ -98,7 +98,7 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
 	         BasisVectors(fct[2])*bas{sel})));
           Add(cand.points,fcand.points[k]*bas{sel});
 	  fct:=MakeSubmoduleCosetAction(submodule);
-	  Add(FUNCSPACEHASH,[fct,submodule]); 
+	  Add(FUNCSPACEHASH,[fct,submodule]);
           Add(cand.ops,fct);
     Info(InfoFFMat,2,"ACTPOP");
 	elif fcand.ops[k]=OnSubspacesByCanonicalBasis then
@@ -166,7 +166,7 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
   if ValueOption("Subrecurse")<>false then
     while j<=Length(dims) and Length(cand.points)<=5 do
       # don't bother is the space is too small
-      if (j=Length(dims) and lastdim>0) or 
+      if (j=Length(dims) and lastdim>0) or
 	(j<Length(dims) and Size(F)^(dims[j+1]-lastdim)>limit) then
 	sel:=[lastdim+1..dims[j]];
 	if trysel(false,true) then
@@ -180,7 +180,7 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
     od;
   fi;
 
-  if lastdim=0 and ValueOption("Facrecurse")<>false then 
+  if lastdim=0 and ValueOption("Facrecurse")<>false then
 
     # all but last submodule was trivial -- step down on factors
     j:=Length(dims)-1;
@@ -231,7 +231,7 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
   TryNextMethod();
 end;
 
-InstallMethod(FindBasePointCandidates, 
+InstallMethod(FindBasePointCandidates,
   "for reducible matrix group over a FF, use submodules and quotients",
   [ IsGroup and IsMatrixGroup and IsFinite, IsRecord, IsInt, IsObject ], 21,
   MSSFBPC);
@@ -423,7 +423,7 @@ local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
 	  sel:=[];
 	  u:=TrivialSubgroup(Image(nicehom));
 	  for i in [1..Length(NiceGens(r))] do
-	    ngi:=ImagesRepresentative(nicehom,NiceGens(r)[i]); 
+	    ngi:=ImagesRepresentative(nicehom,NiceGens(r)[i]);
 	    if not ngi in u then
 	      u:=ClosureGroup(u,ngi);
 	      Add(sel,i);
@@ -471,7 +471,7 @@ local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
   sz:=[];
   permap:=[];
   allgens:=NiceGens(recog);
-  
+
   extranum:=Length(allgens)+1;
   treerecurse(recog,[]);
 
@@ -525,10 +525,10 @@ end;
 CSIDepthElm:=function(csi,x)
 local i;
   i:=1;
-  while i<=csi.n and 
+  while i<=csi.n and
    (not IsBound(csi.leafs[i]) or # early skipped multiple solvable factor
    (
-   (IsBool(csi.leafs[i]) or not (IsBound(csi.leafs[i]!.projective) and csi.leafs[i]!.projective) 
+   (IsBool(csi.leafs[i]) or not (IsBound(csi.leafs[i]!.projective) and csi.leafs[i]!.projective)
      or csi.leafs[i]!.projective=false)
    and Order(CSIImageHomNr(csi,i,x))=1)
      or
@@ -559,7 +559,7 @@ CSIDepthElm:=function(csi,x)
 local i,ximg;
   i:=1;
   while i<=csi.n do
-    if not IsBound(csi.leafs[i]) or 
+    if not IsBound(csi.leafs[i]) or
       ((IsBool(csi.leafs[i]) or not (IsBound(csi.leafs[i]!.projective)  and csi.leafs[i]!.projective)
 	or csi.leafs[i]!.projective=false)
 	and Order(CSIImageHomNr(csi,i,x))=1) then
@@ -669,7 +669,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
       else
 	isom:=IdentityMapping(gp); # first one -- iso is trivial
       fi;
-      
+
       #find out what the previous factors do on it
       for j in Filtered([1..i-1],x->IsBound(csi.minranges[x])) do
 	Info(InfoFFMat,2,"Try ",i," mapped by ",j);
@@ -738,7 +738,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 	      diso:=IdentityMapping(dgp);
 	    else
 	      # isomorphism to canonical form
-	      diso:=InverseGeneralMapping(isoms[d]); 
+	      diso:=InverseGeneralMapping(isoms[d]);
 	    fi;
 	    genimgs[kn][i]:=List(genims,x->ImagesRepresentative(diso,x));
 
@@ -860,7 +860,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 
       # does any of the elements actually do something -- if so, what?
 
-#      if true or ForAny(c,x->IsBound(doesaut[x]) 
+#      if true or ForAny(c,x->IsBound(doesaut[x])
 #        and ForAny(pools[i],y->y in doesaut[x])) then
         Info(InfoFFMat,2,c," acts ",pools[i],j);
 	for kn in c do
@@ -906,7 +906,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
     Add(wrs,w);
     a:=List([1..m],x->PerfectResiduum(Image(Embedding(w,x))));
     b:=TrivialSubgroup(w);
-    for l in a do 
+    for l in a do
       b:=ClosureGroup(b,l);
     od;
     SetDirectFactorsFittingFreeSocle(w,a);
@@ -1359,7 +1359,7 @@ MATGRP_StabilizerChainInner:=
             fi;
         fi;
     until IsClosed(S!.orb);
-    Info(InfoGenSS, 2, "Layer ", layer, ": Orbit length is ", Length(S!.orb)); 
+    Info(InfoGenSS, 2, "Layer ", layer, ": Orbit length is ", Length(S!.orb));
 
     if layer > 1 then
         parentS!.stab := S;   # such that from now on random element
@@ -1411,7 +1411,7 @@ MATGRP_StabilizerChainInner:=
             S!.stab := MATGRP_StabilizerChainInner(stabgens,false,
                                                    layer+1,cand,opt,S);
         fi;
-        if IsString(S!.stab) then return S!.stab; fi; 
+        if IsString(S!.stab) then return S!.stab; fi;
         if opt.ImmediateVerificationElements > 0 then
             Info(InfoGenSS,2,"Doing immediate verification in layer ",
                  S!.layer," (",opt.ImmediateVerificationElements,
@@ -1449,7 +1449,7 @@ MATGRP_AddGeneratorToStabilizerChain:=
             return false;
         fi;
         #SS := StabilizerChain(Group(el),S!.opt);
-	SS:=StabilizerChain(Group(el),rec(Cand:=rec(ops:=[op],points:=[pt]),Reduced:=false,StrictlyUseCandidates:=true)); 
+	SS:=StabilizerChain(Group(el),rec(Cand:=rec(ops:=[op],points:=[pt]),Reduced:=false,StrictlyUseCandidates:=true));
 
         if IsString(SS) then return SS; fi;
         for n in NamesOfComponents(SS) do
@@ -1498,7 +1498,7 @@ MATGRP_AddGeneratorToStabilizerChain:=
         newstrongnr := Length(SS!.stronggens)+1;  # r.rem will end up there !
         SS!.stab := MATGRP_StabilizerChainInner([r.rem],false,
                            SS!.layer+1,rec(points:=[pt],ops:=[op]), SS!.opt, SS );
-        if IsString(SS!.stab) then return SS!.stab; fi; 
+        if IsString(SS!.stab) then return SS!.stab; fi;
         SS := SS!.stab;
     fi;
     # Now we have added a new generator (or a new layer) at layer SS,
@@ -1579,7 +1579,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
   if IsBound(arg[3]) then
     sz:=arg[3];
     #SetSize(a,sz);
-  else 
+  else
     sz:=fail;
   fi;
   SetIsSolvableGroup(a,true);
@@ -1667,7 +1667,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
 
     MATGRP_AddGeneratorToStabilizerChain(S,g,goodbase.points[pbp],goodbase.ops[pbp]);
 
-    while Size(S)=oldsz do 
+    while Size(S)=oldsz do
       Error("orderr BUG !!!\n");
       MATGRP_AddGeneratorToStabilizerChain(S,g);
     od;
@@ -1750,7 +1750,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
       oldsz:=Size(S);
       while not a do
         c:=c+1;
-	 if c>bound then 
+	 if c>bound then
 	   # not solvable
 	   Error("not solvable");
 	 fi;
@@ -1827,13 +1827,13 @@ Info(InfoFFMat,2,"n");
       S:=StabilizerChain(Group(x),rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true,
         OrbitsWithLog := false,RandomStabGens:=1,Size:=Order(x)));
 
-      # Remove those ~!@#$ extra generators (powers of x) that are added 
+      # Remove those ~!@#$ extra generators (powers of x) that are added
       # to make the tree shallower, but cause problems here.
       strongs:=[x];
 
       a:=S;
 
-      while a<>false do 
+      while a<>false do
         a!.stronggens:=ShallowCopy(strongs);
         a!.layergens:=[1];
         if Length(a!.orb!.gens)>0 then
@@ -1857,7 +1857,7 @@ Info(InfoFFMat,2,"n");
       #CHAINTEST(S,"F2");
 
       strongs:=[];
-      
+
     fi;
 
     if Size(S)=oldsz then Error("no change!");fi;
@@ -1865,7 +1865,7 @@ Info(InfoFFMat,2,"n");
     Add(pcgs,x);
     a:=Set(Filtered(StrongGenerators(S),x->not x in strongs));
     a:=Difference(a,List([0..Order(x)],y->x^y));
-    if Length(a)>0 then 
+    if Length(a)>0 then
       # redo
       Info(InfoFFMat,1,"nanu-redo");
       #Error("nanu");
@@ -1877,7 +1877,7 @@ Info(InfoFFMat,2,"n");
 
 
     Append(stronglevs,ListWithIdenticalEntries(1,n+1-xp));
-    #if n+1-xp in depths then 
+    #if n+1-xp in depths then
     #  Add(stabs,StructuralCopy(S));
     #fi;
     xp:=xp+1;
@@ -1972,7 +1972,7 @@ Info(InfoFFMat,2,"n");
   #TODO: Use chain for decomposition -- at the moment it uses subgroups
   a:=pcgs;
   pcgs:=PcgsByPcSequenceCons(IsPcgsDefaultRep,
-    IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs, 
+    IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
     FamilyObj(gens[1]),pcgs,[]);
   pcgs!.stabilizerChain:=S;
   #pcgs!.stabs:=Reversed(stabs);
@@ -2148,7 +2148,7 @@ local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,
     fi;
 
   # stop when we've set the lowest layer or if the remainder is the identity
-  until layer=laynums[Length(laynums)] or delta=fail; 
+  until layer=laynums[Length(laynums)] or delta=fail;
 
   # do we only want some?
   if laynums=pcgs!.laynums then
@@ -2240,7 +2240,7 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
   csi:=GetInformationFromRecog(r);
   G!.storedrecog:=csi;
   factorhom:=FindAct(csi);
-  
+
 
   #TODO: Better kernel gens by random selection
   sz:=Size(G)/Size(Image(factorhom));
@@ -2305,7 +2305,7 @@ local start,f;
   Print("PcgsDegrees ",Maximum(List(
     BasePointsActionsOrbitLengthsStabilizerChain(f.pcgs!.stabilizerChain),
     x->x[3])),"\n");
-  
+
 end;
 
 # work over residue class rings
@@ -2518,7 +2518,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 	if not IsZero(e) then
           if bot and IsBound(bas[i]) and Length(bas[i])=layerlimit then
             # Bottom layer is full, nothing else needed to do
-            a:=fail; 
+            a:=fail;
 	  elif IsBound(bas[i]) and Length(bas[i])>0 then
 	    s:=SolutionMat(bas[i],e);
 	    if s=fail then
@@ -2701,7 +2701,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   od;
 
   pcgs:=PcgsByPcSequenceCons(IsPcgsDefaultRep,
-    IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs, 
+    IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs,
     FamilyObj(One(g)),pcgs,[]);
 
   # decomposition info for pcgs
@@ -2819,8 +2819,9 @@ end);
 
 # temporary -- missing in library
 InstallMethod(MaximalSubgroupClassReps,"TF method",true,
-  [IsGroup and IsFinite and
-  HasFittingFreeLiftSetup],OVERRIDENICE,DoMaxesTF);
+  [IsGroup and IsFinite and HasFittingFreeLiftSetup],
+  {} -> RankFilter( IsHandledByNiceMonomorphism ),
+DoMaxesTF);
 
 TFSubgroupMembership:=function(g,u,elm)
 local ffu,ff,x;
@@ -2842,7 +2843,7 @@ end;
 # careful -- this implicitly assumes we always stay in the parent
 InstallMethod(\in,"ff subgroup",IsElmsColls,
   [IsMultiplicativeElementWithInverse,IsGroup and IsMatrixGroup],
-  OVERRIDENICE,
+  {} -> RankFilter( IsHandledByNiceMonomorphism ),
 function(elm,u)
   if not HasParentAttr(u) or not HasFittingFreeLiftSetup(ParentAttr(u)) then
     TryNextMethod();
