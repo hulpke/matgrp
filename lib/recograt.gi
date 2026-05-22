@@ -13,38 +13,9 @@ SetInfoLevel(InfoRecog,0); # recog will print status messages otherwise
 # mod to recog -- rings
 
 # newer recog has some changes to these internal APIs
-if not IsBound(RIFac) and IsBound(ImageRecogNode) then
-  RIFac := ImageRecogNode;
-  RIKer := KernelRecogNode;
-fi;
-
-if IsBound(BindRecogMethod) then
-
-BindRecogMethod(FindHomMethodsMatrix, "Nonfield",
-"catch matrix groups defined over nonfield rings",
-function(ri, G)
-  if IsBound(ri!.ring) and not IsBound(ri!.field) then
-    Error("hereIAm");
-  fi;
-  return false;
-end);
-
-AddMethod( FindHomDbMatrix, FindHomMethodsMatrix.Nonfield, 5100);
-
-
-else
-
-FindHomMethodsMatrix.Nonfield := function(ri, G)
-  if IsBound(ri!.ring) and not IsBound(ri!.field) then
-    Error("hereIAm");
-  fi;
-  return false;
-end;
-
-AddMethod( FindHomDbMatrix, FindHomMethodsMatrix.Nonfield,
-  5100, "Nonfield",
-          "catch matrix groups defined over nonfield rings" );
-
+if not IsBound(ImageRecogNode) then
+  ImageRecogNode := RIFac;
+  KernelRecogNode := RIKer;
 fi;
 
 OnSubmoduleCosets:=function(cset,g)
@@ -475,9 +446,9 @@ local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
       genum:=genum+f;
     else
       #hom:=Homom(r);
-      f:=RIFac(r);
+      f:=ImageRecogNode(r);
       treerecurse(f,Concatenation(h,[1]));
-      k:=RIKer(r);
+      k:=KernelRecogNode(r);
       if k<>fail then
 	treerecurse(k,Concatenation(h,[0]));
       fi;
@@ -529,10 +500,10 @@ local r,h,i;
   h:=csi.homs[n];
   for i in h do
     if i=0 then
-      r:=RIKer(r);
+      r:=KernelRecogNode(r);
     elif i=1 then
       x:=ImageElm(Homom(r),x);
-      r:=RIFac(r);
+      r:=ImageRecogNode(r);
     else
       x:=ImageElm(csi.furtherhom[i],x);
     fi;
