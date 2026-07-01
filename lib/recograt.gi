@@ -10,7 +10,9 @@
 
 SetInfoLevel(InfoRecog,0); # recog will print status messages otherwise
 
-# mod to recog -- rings
+# library change
+if not IsBound(RUN_IN_GGMBI) then RUN_IN_GGMBI:=fail;fi;
+
 
 # newer recog has some changes to these internal APIs
 if not IsBound(ImageRecogNode) then
@@ -55,61 +57,61 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
     Info(InfoFFMat,2,"range ",sel," have ",Length(cand.points));
       lgens:=List(mo,x->x{sel}{sel});
       fcand:=FindBasePointCandidates(Group(lgens),opt,ii,
-	       false:Subrecurse:=recsub,Facrecurse:=recfac);
+        false:Subrecurse:=recsub,Facrecurse:=recfac);
       Info( InfoGenSS, 3, "Subfactor module of range ",sel,", ",Length(fcand.ops),
-	    " candidates");
+     " candidates");
       for k in [1..Length(fcand.ops)] do
-	if ForAll(lgens,x->fcand.ops[k](fcand.points[k],x)=fcand.points[k]) then
-	  Info(InfoFFMat,2,"Ignoring fixed element for base");
+ if ForAll(lgens,x->fcand.ops[k](fcand.points[k],x)=fcand.points[k]) then
+   Info(InfoFFMat,2,"Ignoring fixed element for base");
 
-	elif fcand.ops[k]=OnRight or fcand.ops[k]=OnPoints or fcand.ops[k]=OnLines then
-	  nb:=fcand.points[k]*bas{sel};
-	  if lastdim=0 then
-	    # proper subspace -- just vectors
-	    Add(cand.points,nb);
-	    Add(cand.ops,fcand.ops[k]);
-	  elif true then
-	    # # action on cosets
-	    submodule:=SemiEchelonBasis(VectorSpace(F,bas{[1..lastdim]},Zero(bas[1])));
-	    nb:=SiftedVector(submodule,nb);
-	    if fcand.ops[k]=OnLines then
-	      fct:=MakeSubmoduleColineAction(submodule);
-	      Add(FUNCSPACEHASH,[fct,submodule]);
-	    else
-	      fct:=MakeSubmoduleCosetAction(submodule);
-	      Add(FUNCSPACEHASH,[fct,submodule]);
-	    fi;
-	    Add(cand.points,nb);
-	    Add(cand.ops,fct);
-	  elif Length(sel)=1 then
-	    # TODO: 1-dim factor -- need to do cosets
-	    Info(InfoWarning,1,"Case not yet implemented");
-	  else
-	    # subfactor -- take subspace preimage
-	    nb:=OnSubspacesByCanonicalBasis(Concatenation(bas{[1..lastdim]},[nb]),
-		  One(grp));
-	    Add(cand.points,nb);
-	    Add(cand.ops,OnSubspacesByCanonicalBasis);
-	  fi;
-	elif ForAny(FUNCSPACEHASH,x->x[1]=fcand.ops[k]) then
-	  fct:=First(FUNCSPACEHASH,x->x[1]=fcand.ops[k]);
-	  submodule:=SemiEchelonBasis(VectorSpace(F,
-	       Concatenation(bas{[1..lastdim]},
-	         BasisVectors(fct[2])*bas{sel})));
+ elif fcand.ops[k]=OnRight or fcand.ops[k]=OnPoints or fcand.ops[k]=OnLines then
+   nb:=fcand.points[k]*bas{sel};
+   if lastdim=0 then
+     # proper subspace -- just vectors
+     Add(cand.points,nb);
+     Add(cand.ops,fcand.ops[k]);
+   elif true then
+     # # action on cosets
+     submodule:=SemiEchelonBasis(VectorSpace(F,bas{[1..lastdim]},Zero(bas[1])));
+     nb:=SiftedVector(submodule,nb);
+     if fcand.ops[k]=OnLines then
+       fct:=MakeSubmoduleColineAction(submodule);
+       Add(FUNCSPACEHASH,[fct,submodule]);
+     else
+       fct:=MakeSubmoduleCosetAction(submodule);
+       Add(FUNCSPACEHASH,[fct,submodule]);
+     fi;
+     Add(cand.points,nb);
+     Add(cand.ops,fct);
+   elif Length(sel)=1 then
+     # TODO: 1-dim factor -- need to do cosets
+     Info(InfoWarning,1,"Case not yet implemented");
+   else
+     # subfactor -- take subspace preimage
+     nb:=OnSubspacesByCanonicalBasis(Concatenation(bas{[1..lastdim]},[nb]),
+    One(grp));
+     Add(cand.points,nb);
+     Add(cand.ops,OnSubspacesByCanonicalBasis);
+   fi;
+ elif ForAny(FUNCSPACEHASH,x->x[1]=fcand.ops[k]) then
+   fct:=First(FUNCSPACEHASH,x->x[1]=fcand.ops[k]);
+   submodule:=SemiEchelonBasis(VectorSpace(F,
+        Concatenation(bas{[1..lastdim]},
+          BasisVectors(fct[2])*bas{sel})));
           Add(cand.points,fcand.points[k]*bas{sel});
-	  fct:=MakeSubmoduleCosetAction(submodule);
-	  Add(FUNCSPACEHASH,[fct,submodule]);
+   fct:=MakeSubmoduleCosetAction(submodule);
+   Add(FUNCSPACEHASH,[fct,submodule]);
           Add(cand.ops,fct);
     Info(InfoFFMat,2,"ACTPOP");
-	elif fcand.ops[k]=OnSubspacesByCanonicalBasis then
-	  nb:=fcand.points[k]*bas{sel};
-	  nb:=OnSubspacesByCanonicalBasis(Concatenation(bas{[1..lastdim]},nb),
-		One(grp));
-	  Add(cand.points,nb);
-	  Add(cand.ops,OnSubspacesByCanonicalBasis);
-	else
-	  Info(InfoWarning,1,"Action not recognized");
-	fi;
+ elif fcand.ops[k]=OnSubspacesByCanonicalBasis then
+   nb:=fcand.points[k]*bas{sel};
+   nb:=OnSubspacesByCanonicalBasis(Concatenation(bas{[1..lastdim]},nb),
+  One(grp));
+   Add(cand.points,nb);
+   Add(cand.ops,OnSubspacesByCanonicalBasis);
+ else
+   Info(InfoWarning,1,"Action not recognized");
+ fi;
       od;
       return true;
     else
@@ -134,7 +136,7 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
   if ForAny(cs,IsObjWithMemory) then
     cs:=Concatenation(Filtered(cs,x->not IsObjWithMemory(x)),
            List(Filtered(cs,x->IsObjWithMemory(x)),
-	        x->x!.el));
+         x->x!.el));
   fi;
 
   cand:=rec(ops:=[],points:=[],used:=0);
@@ -167,12 +169,12 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
     while j<=Length(dims) and Length(cand.points)<=5 do
       # don't bother is the space is too small
       if (j=Length(dims) and lastdim>0) or
-	(j<Length(dims) and Size(F)^(dims[j+1]-lastdim)>limit) then
-	sel:=[lastdim+1..dims[j]];
-	if trysel(false,true) then
-	  # we tried a space
-	  lastdim:=dims[j];
-	fi;
+ (j<Length(dims) and Size(F)^(dims[j+1]-lastdim)>limit) then
+ sel:=[lastdim+1..dims[j]];
+ if trysel(false,true) then
+   # we tried a space
+   lastdim:=dims[j];
+ fi;
 
       fi;
 
@@ -187,10 +189,10 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
     while j>0 and Length(cand.points)<=5 do
       lastdim:=dims[j]-1;
       if (j>1 and Size(F)^(dim-dims[j-1])>limit) then
-	sel:=[lastdim+1..dim];
-	if trysel(false,false) then
-	  j:=0;
-	fi;
+ sel:=[lastdim+1..dim];
+ if trysel(false,false) then
+   j:=0;
+ fi;
       fi;
       j:=j-1;
     od;
@@ -209,19 +211,19 @@ mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
       orbs:=Set(orb); # as short, set is fine.
       j:=1;
       while j<=Length(orb) and Length(orb)<=limit do
-	for k in GeneratorsOfGroup(grp) do
-	  cs:=mo(orb[j],k);
-	  if not cs in orbs then
-	    Add(orb,cs);
-	    AddSet(orbs,cs);
-	  fi;
-	od;
-	j:=j+1;
+ for k in GeneratorsOfGroup(grp) do
+   cs:=mo(orb[j],k);
+   if not cs in orbs then
+     Add(orb,cs);
+     AddSet(orbs,cs);
+   fi;
+ od;
+ j:=j+1;
       od;
       if Length(orb)<=limit then
-	Add(sel,i);
-	Add(cand.points,orb[1]);
-	Add(cand.ops,mo);
+ Add(sel,i);
+ Add(cand.points,orb[1]);
+ Add(cand.ops,mo);
       fi;
     od;
     Info(InfoFFMat,2,"Selected ",Length(sel)," of ",Length(opt.PCand.points)," group basis vectors");
@@ -250,197 +252,197 @@ local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
       Info(InfoFFMat,2,"Leaf",Size(r)," ",genum," ",f);
       k:=[genum+1..genum+f];
       if Size(r)=1 then
-	Info(InfoFFMat,2,"ignoring trivial factor");
+ Info(InfoFFMat,2,"ignoring trivial factor");
       elif Length(Set(Factors(Size(r))))<3 then
-	Info(InfoFFMat,2,"ignoring solvable factor of order ",Size(r));
+ Info(InfoFFMat,2,"ignoring solvable factor of order ",Size(r));
 
-	# store info
-	n:=n+Length(Factors(Size(r)));
-	SetIsSolvableGroup(Grp(r),true);
-	permap[n]:=IdentityMapping(Grp(r));
-	leafs[n]:=r;
-	homs[n]:=h;
-	factors[n]:=false;
-	sz[n]:=Size(r);
-	leafgens[n]:=f;
+ # store info
+ n:=n+Length(Factors(Size(r)));
+ SetIsSolvableGroup(Grp(r),true);
+ permap[n]:=IdentityMapping(Grp(r));
+ leafs[n]:=r;
+ homs[n]:=h;
+ factors[n]:=false;
+ sz[n]:=Size(r);
+ leafgens[n]:=f;
 
-	sel:=[1..Length(NiceGens(r))];
-	mingens[n]:=sel;
-	niceranges[n]:=k;
-	minranges[n]:=k{sel};
+ sel:=[1..Length(NiceGens(r))];
+ mingens[n]:=sel;
+ niceranges[n]:=k;
+ minranges[n]:=k{sel};
 
       else
-	nicehom:=false;
-	if IsPermGroup(Grp(r)) then
-	  nicehom:=IdentityMapping(Grp(r));
-	elif IsBound(r!.stabilizerchain) then
-	  #use ActionOnOrbit?
-	  stbc:=BaseStabilizerChain(r!.stabilizerchain);
-	  act:=stbc.ops[1];
-	  if ForAll(stbc.ops,x->x=act) then
-	    # all the same action -- union
-	    orbit:=[];
-	    for j in [1..Length(stbc.points)] do
-	      if not stbc.points[j] in orbit then
-		orbit:=Union(orbit,Orbit(Grp(r),stbc.points[j],stbc.ops[j]));
-	      fi;
-	    od;
-	    if Length(orbit)>1 and Length(orbit)<50000 then
-	      nicehom:=ActionHomomorphism(Grp(r),orbit,stbc.ops[1],"surjective");
-	      Info(InfoFFMat,2,"Got degree ",Length(orbit));
-	    fi;
-	  fi;
-	fi;
+ nicehom:=false;
+ if IsPermGroup(Grp(r)) then
+   nicehom:=IdentityMapping(Grp(r));
+ elif IsBound(r!.stabilizerchain) then
+   #use ActionOnOrbit?
+   stbc:=BaseStabilizerChain(r!.stabilizerchain);
+   act:=stbc.ops[1];
+   if ForAll(stbc.ops,x->x=act) then
+     # all the same action -- union
+     orbit:=[];
+     for j in [1..Length(stbc.points)] do
+       if not stbc.points[j] in orbit then
+  orbit:=Union(orbit,Orbit(Grp(r),stbc.points[j],stbc.ops[j]));
+       fi;
+     od;
+     if Length(orbit)>1 and Length(orbit)<50000 then
+       nicehom:=ActionHomomorphism(Grp(r),orbit,stbc.ops[1],"surjective");
+       Info(InfoFFMat,2,"Got degree ",Length(orbit));
+     fi;
+   fi;
+ fi;
 
 
-	if nicehom=false then
+ if nicehom=false then
 # Hasfhmethsel, success method: StabilizerChain
 
-	  if IsBound(r!.projective) and r!.projective then
-	    g:=Grp(r);
-	    v:=OnLines(g.1[1],One(g));
-	    dom:=ShallowCopy(Orbit(g,v,OnLines));
-	    nicehom:=ActionHomomorphism(g,dom,OnLines,"surjective");
-	    while Size(Image(nicehom))<Size(r) do
-	      cnt:=0;
-	      repeat
-		v:=OnLines(Random(DefaultFieldOfMatrixGroup(g)^Length(One(g))),
-		           One(g));
+   if IsBound(r!.projective) and r!.projective then
+     g:=Grp(r);
+     v:=OnLines(g.1[1],One(g));
+     dom:=ShallowCopy(Orbit(g,v,OnLines));
+     nicehom:=ActionHomomorphism(g,dom,OnLines,"surjective");
+     while Size(Image(nicehom))<Size(r) do
+       cnt:=0;
+       repeat
+  v:=OnLines(Random(DefaultFieldOfMatrixGroup(g)^Length(One(g))),
+             One(g));
                 cnt:=cnt+1;
-		if cnt>1000 then Error("no vector found");fi;
-	      until not v in dom;
-	      Append(dom,Orbit(g,v,OnLines));
-	      nicehom:=ActionHomomorphism(g,dom,OnLines,"surjective");
-	    od;
-	  else
-	    nicehom:=IsomorphismPermGroup(Grp(r));
-	  fi;
-	fi;
-	g:=Image(nicehom);
-	if Size(g)<>Size(r) then
-	  Error("some discrepancy happened");
-	fi;
+  if cnt>1000 then Error("no vector found");fi;
+       until not v in dom;
+       Append(dom,Orbit(g,v,OnLines));
+       nicehom:=ActionHomomorphism(g,dom,OnLines,"surjective");
+     od;
+   else
+     nicehom:=IsomorphismPermGroup(Grp(r));
+   fi;
+ fi;
+ g:=Image(nicehom);
+ if Size(g)<>Size(r) then
+   Error("some discrepancy happened");
+ fi;
 
-	#test!!
-	# .isknownsimple, .isknownalmostsimple
-	if IsBound(r!.comment) and r!.comment[1]<>'_' then
-	  SetIsSimpleGroup(g,true);
-	  gd:=g;
-	elif not IsSolvableGroup(g) then
-	  gd:=PerfectResiduum(g);
-	else
-	  gd:=fail;
-	fi;
+ #test!!
+ # .isknownsimple, .isknownalmostsimple
+ if IsBound(r!.comment) and r!.comment[1]<>'_' then
+   SetIsSimpleGroup(g,true);
+   gd:=g;
+ elif not IsSolvableGroup(g) then
+   gd:=PerfectResiduum(g);
+ else
+   gd:=fail;
+ fi;
 
-	if gd<>fail then
-	  if NrMovedPoints(g)> SufficientlySmallDegreeSimpleGroupOrder(Size(gd))
-	    then
-	      nicehom:=nicehom*SmallerDegreePermutationRepresentation(g);
-	      gd:=Image(nicehom);
-	      Info(InfoFFMat,2,"Improved degree ",NrMovedPoints(g),"->",
-	        NrMovedPoints(gd));
-	      if HasIsSimpleGroup(g) and IsSimpleGroup(g) then
-		SetIsSimpleGroup(gd,true);
-		SetIsSolvableGroup(gd,false);
-	      fi;
-	      g:=gd;
-	  fi;
-	fi;
+ if gd<>fail then
+   if NrMovedPoints(g)> SufficientlySmallDegreeSimpleGroupOrder(Size(gd))
+     then
+       nicehom:=nicehom*SmallerDegreePermutationRepresentation(g);
+       gd:=Image(nicehom);
+       Info(InfoFFMat,2,"Improved degree ",NrMovedPoints(g),"->",
+         NrMovedPoints(gd));
+       if HasIsSimpleGroup(g) and IsSimpleGroup(g) then
+  SetIsSimpleGroup(gd,true);
+  SetIsSolvableGroup(gd,false);
+       fi;
+       g:=gd;
+   fi;
+ fi;
 
-	## indicate unsolvable
-	#nsol:=IsSimpleGroup(g) or
-	#  (Length(Set(Factors(Size(r))))>2 and not IsSolvableGroup(g));
+ ## indicate unsolvable
+ #nsol:=IsSimpleGroup(g) or
+ #  (Length(Set(Factors(Size(r))))>2 and not IsSolvableGroup(g));
 
 
-	if IsSolvableGroup(g) then
-	  Info(InfoFFMat,2,"Ignoring solvable factor of order ",Size(g));
-	    n:=n+Length(Factors(Size(g)));
-	  elif not IsSimpleGroup(g) then
+ if IsSolvableGroup(g) then
+   Info(InfoFFMat,2,"Ignoring solvable factor of order ",Size(g));
+     n:=n+Length(Factors(Size(g)));
+   elif not IsSimpleGroup(g) then
   Info(InfoFFMat,2,"doing size",Size(g)," ",IsSimpleGroup(g));
 
-	  # not simple -- split
-	  cs:=CompositionSeries(g);
-	  ng:=List(NiceGens(r),x->ImagesRepresentative(nicehom,x));
-	  for i in [2..Length(cs)] do
-	    extra:=[];
-	    n:=n+1;
-	    # test generators
-	    u:=cs[i];
-	    sel:=[];
-	    for j in [1..f] do
-	      x:=ng[j];
-	      if x in cs[i-1] and not x in u then
-		Add(sel,j);
-		u:=ClosureSubgroup(u,x);
-	      fi;
-	    od;
+   # not simple -- split
+   cs:=CompositionSeries(g);
+   ng:=List(NiceGens(r),x->ImagesRepresentative(nicehom,x));
+   for i in [2..Length(cs)] do
+     extra:=[];
+     n:=n+1;
+     # test generators
+     u:=cs[i];
+     sel:=[];
+     for j in [1..f] do
+       x:=ng[j];
+       if x in cs[i-1] and not x in u then
+  Add(sel,j);
+  u:=ClosureSubgroup(u,x);
+       fi;
+     od;
 
-	    nicegp:=Group(ng);
-	    map:=EpimorphismFromFreeGroup(nicegp);
+     nicegp:=Group(ng);
+     map:=EpimorphismFromFreeGroup(nicegp);
 
-	    if Size(u)<Size(cs[i-1]) then
-	      Info(InfoFFMat,2,"cannot compatibilize generators -- add extras");
-	      while Size(u)<Size(cs[i-1]) do
-	        x:=First(GeneratorsOfGroup(cs[i-1]),x->not x in u);
-		u:=ClosureSubgroup(u,x);
+     if Size(u)<Size(cs[i-1]) then
+       Info(InfoFFMat,2,"cannot compatibilize generators -- add extras");
+       while Size(u)<Size(cs[i-1]) do
+         x:=First(GeneratorsOfGroup(cs[i-1]),x->not x in u);
+  u:=ClosureSubgroup(u,x);
 
-		# decompose into word
-		xf:=Factorization(nicegp,x);
-		if xf=fail then Error("factorization error");fi;
-		x:=MappedWord(xf,MappingGeneratorsImages(map)[1],allgens{k});
+  # decompose into word
+  xf:=Factorization(nicegp,x);
+  if xf=fail then Error("factorization error");fi;
+  x:=MappedWord(xf,MappingGeneratorsImages(map)[1],allgens{k});
 
-		extragens[extranum]:=x;
-		Add(extra,extranum);
-		extranum:=extranum+1;
-	      od;
-	    fi;
-	    hom:=NaturalHomomorphismByNormalSubgroup(cs[i-1],cs[i]);
-	    if not IsAbelian(Image(hom)) then
-	      permap[n]:=IsomorphismPermGroup(Image(hom));
-	    fi;
+  extragens[extranum]:=x;
+  Add(extra,extranum);
+  extranum:=extranum+1;
+       od;
+     fi;
+     hom:=NaturalHomomorphismByNormalSubgroup(cs[i-1],cs[i]);
+     if not IsAbelian(Image(hom)) then
+       permap[n]:=IsomorphismPermGroup(Image(hom));
+     fi;
 
-	    fn:=fn+1;
-	    if Size(cs[i])=1 then
-	      furtherhom[fn]:=nicehom;
-	    else
-	      furtherhom[fn]:=nicehom*hom;
-	    fi;
-	    leafs[n]:=false;
-	    homs[n]:=Concatenation(h,[fn]);
-	    factors[n]:=Image(hom);
-	    sz[n]:=Size(Image(hom));
-	    leafgens[n]:=false;
-	    niceranges[n]:=false;
-	    minranges[n]:=Concatenation(k{sel},extra);
-	  od;
+     fn:=fn+1;
+     if Size(cs[i])=1 then
+       furtherhom[fn]:=nicehom;
+     else
+       furtherhom[fn]:=nicehom*hom;
+     fi;
+     leafs[n]:=false;
+     homs[n]:=Concatenation(h,[fn]);
+     factors[n]:=Image(hom);
+     sz[n]:=Size(Image(hom));
+     leafgens[n]:=false;
+     niceranges[n]:=false;
+     minranges[n]:=Concatenation(k{sel},extra);
+   od;
 
-	else
-	  # found a simple case
-	  n:=n+1;
+ else
+   # found a simple case
+   n:=n+1;
 
-	  permap[n]:=nicehom;
-	  # get smaller generating set
-	  sel:=[];
-	  u:=TrivialSubgroup(Image(nicehom));
-	  for i in [1..Length(NiceGens(r))] do
-	    ngi:=ImagesRepresentative(nicehom,NiceGens(r)[i]);
-	    if not ngi in u then
-	      u:=ClosureGroup(u,ngi);
-	      Add(sel,i);
-	    fi;
-	  od;
+   permap[n]:=nicehom;
+   # get smaller generating set
+   sel:=[];
+   u:=TrivialSubgroup(Image(nicehom));
+   for i in [1..Length(NiceGens(r))] do
+     ngi:=ImagesRepresentative(nicehom,NiceGens(r)[i]);
+     if not ngi in u then
+       u:=ClosureGroup(u,ngi);
+       Add(sel,i);
+     fi;
+   od;
 
-	  leafs[n]:=r;
-	  homs[n]:=h;
-	  factors[n]:=g;
-	  sz[n]:=Size(r);
-	  leafgens[n]:=f;
+   leafs[n]:=r;
+   homs[n]:=h;
+   factors[n]:=g;
+   sz[n]:=Size(r);
+   leafgens[n]:=f;
 
-	  mingens[n]:=sel;
-	  niceranges[n]:=k;
-	  minranges[n]:=k{sel};
+   mingens[n]:=sel;
+   niceranges[n]:=k;
+   minranges[n]:=k{sel};
 
-	fi;
+ fi;
 
       fi;
       genum:=genum+f;
@@ -450,7 +452,7 @@ local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
       treerecurse(f,Concatenation(h,[1]));
       k:=KernelRecogNode(r);
       if k<>fail then
-	treerecurse(k,Concatenation(h,[0]));
+ treerecurse(k,Concatenation(h,[0]));
       fi;
     fi;
 
@@ -561,16 +563,16 @@ local i,ximg;
   while i<=csi.n do
     if not IsBound(csi.leafs[i]) or
       ((IsBool(csi.leafs[i]) or not (IsBound(csi.leafs[i]!.projective)  and csi.leafs[i]!.projective)
-	or csi.leafs[i]!.projective=false)
-	and Order(CSIImageHomNr(csi,i,x))=1) then
+ or csi.leafs[i]!.projective=false)
+ and Order(CSIImageHomNr(csi,i,x))=1) then
       i:=i+1;
     elif (not IsBool(csi.leafs[i]) and IsBound(csi.leafs[i]!.projective) and
-	csi.leafs[i]!.projective) then
+ csi.leafs[i]!.projective) then
       ximg:=CSIImageHomNr(csi,i,x);
       if ForAll(CSIProjectiveBases(csi,i,ximg),z->OnLines(z,ximg)=z) then
-	i:=i+1;
+ i:=i+1;
       else
-	return i;
+ return i;
       fi;
     else
       return i;
@@ -633,10 +635,10 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
     if IsBound(csi.permap[i]) and not IsSolvableGroup(Image(csi.permap[i])) then
 
       if not IsBound(goodgens[i]) then
-	# no generators set yet -- just take new ones
-	#lgens:=csinice{csi.minranges[i]};
-	lgens:=CSINiceGens(csi,csi.minranges[i]);
-	goodgens[i]:=lgens;
+ # no generators set yet -- just take new ones
+ #lgens:=csinice{csi.minranges[i]};
+ lgens:=CSINiceGens(csi,csi.minranges[i]);
+ goodgens[i]:=lgens;
       else
         lgens:=goodgens[i];
       fi;
@@ -646,11 +648,11 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
       gens:=List(lgens,x->ImagesRepresentative(csi.permap[i],CSIImageHomNr(csi,i,x)));
 
 #      for x in [1..Length(gens)] do
-#	j:=CSIImageHomNr(csi,i,csinice[csi.minranges[i][x]]);
-#	k:=Image(csi.permap[i],j);
-#	if k<>gens[x] then
-#	  Error("GENS");
-#	fi;
+# j:=CSIImageHomNr(csi,i,csinice[csi.minranges[i][x]]);
+# k:=Image(csi.permap[i],j);
+# if k<>gens[x] then
+#   Error("GENS");
+# fi;
 #      od;
 
       # nonsolvable factor -- Is it in pools?
@@ -658,150 +660,150 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
       # pools will always be joined TO the current one, so isom will not
       # have to change on the way.
       if poolnum=fail then
-	Add(pools,[i]);
-	poolnum:=Length(pools);
-	auts[poolnum]:=[];
-	isoms[i]:=false; # representative
-	isom:=IdentityMapping(gp);
-	Add(poolimggens,gens);
+ Add(pools,[i]);
+ poolnum:=Length(pools);
+ auts[poolnum]:=[];
+ isoms[i]:=false; # representative
+ isom:=IdentityMapping(gp);
+ Add(poolimggens,gens);
       elif i<>pools[poolnum][1] then
-	isom:=isoms[i]; # iso
+ isom:=isoms[i]; # iso
       else
-	isom:=IdentityMapping(gp); # first one -- iso is trivial
+ isom:=IdentityMapping(gp); # first one -- iso is trivial
       fi;
 
       #find out what the previous factors do on it
       for j in Filtered([1..i-1],x->IsBound(csi.minranges[x])) do
-	Info(InfoFFMat,2,"Try ",i," mapped by ",j);
+ Info(InfoFFMat,2,"Try ",i," mapped by ",j);
 
-	for kn in csi.minranges[j] do
-	  #k:=csinice[kn];
-	  k:=CSINiceGens(csi,kn);
-	  if not IsBound(perms[kn]) then
-	    perms[kn]:=[];
-	    genimgs[kn]:=[];
-	    doesaut[kn]:=[];
-	  fi;
+ for kn in csi.minranges[j] do
+   #k:=csinice[kn];
+   k:=CSINiceGens(csi,kn);
+   if not IsBound(perms[kn]) then
+     perms[kn]:=[];
+     genimgs[kn]:=[];
+     doesaut[kn]:=[];
+   fi;
 
-	  conjgens:=[];
-	  genims:=[];
-	  imgdepth:=fail;
-	  # calculate images
-	  for l in lgens do
-	    c:=l^k; # conjugate
-	    Add(conjgens,c);
-	    d:=CSIDepthElm(csi,c);
-	    if imgdepth=fail then
-	      # new image -- isomorphism
-	      imgdepth:=d;
-	      perms[kn][i]:=d; # record permutations
-	    elif imgdepth<>d then
-	      # this cannot happen
-	      Error("incompatible depths");
-	    fi;
-	    Add(genims,ImagesRepresentative(csi.permap[d],CSIImageHomNr(csi,d,c)));
-	  od;
+   conjgens:=[];
+   genims:=[];
+   imgdepth:=fail;
+   # calculate images
+   for l in lgens do
+     c:=l^k; # conjugate
+     Add(conjgens,c);
+     d:=CSIDepthElm(csi,c);
+     if imgdepth=fail then
+       # new image -- isomorphism
+       imgdepth:=d;
+       perms[kn][i]:=d; # record permutations
+     elif imgdepth<>d then
+       # this cannot happen
+       Error("incompatible depths");
+     fi;
+     Add(genims,ImagesRepresentative(csi.permap[d],CSIImageHomNr(csi,d,c)));
+   od;
 
-	  dgp:=Image(csi.permap[d]);
-	  if AssertionLevel()>2 then
-	    hom:=GroupHomomorphismByImages(gp,dgp,gens,genims);
-	  else
-	    hom:=GroupHomomorphismByImagesNC(gp,dgp,gens,genims);
-	  fi;
-	  if hom=fail then Error("should not happen");fi;
+   dgp:=Image(csi.permap[d]);
+   if AssertionLevel()>2 then
+     hom:=GroupHomomorphismByImages(gp,dgp,gens,genims);
+   else
+     hom:=GroupHomomorphismByImagesNC(gp,dgp,gens,genims);
+   fi;
+   if hom=fail then Error("should not happen");fi;
 
-	  if d=i then
-	    # pull generator images back in original group
-	    genimgs[kn][i]:=List(genims,x->PreImagesRepresentativeNC(isom,x));
+   if d=i then
+     # pull generator images back in original group
+     genimgs[kn][i]:=List(genims,x->PreImagesRepresentativeNC(isom,x));
 
 #if ForAny(Flat(genimgs),x->not x in Image(csi.permap[pools[poolnum][1]])) then
 #  Error("imerrD");
 #fi;
 
-	    # component is not moved we just need to conjugate with isom
-	    hom:=isom*hom*InverseGeneralMapping(isom);
-	  SetIsBijective(hom,true);
-	    if not IsInnerAutomorphism(hom) then
-	      Add(auts[poolnum],hom);
-	      AddSet(doesaut[kn],i);
-	    elif not IsOne(hom) then
-	      # not automorphism, but still acting
-	      AddSet(doesaut[kn],i);
-	    fi;
-	  elif d in pools[poolnum] then
-	    # we know already that the groups are isomorphic -- just store
-	    # the new automorphism
+     # component is not moved we just need to conjugate with isom
+     hom:=isom*hom*InverseGeneralMapping(isom);
+   SetIsBijective(hom,true);
+     if not IsInnerAutomorphism(hom) then
+       Add(auts[poolnum],hom);
+       AddSet(doesaut[kn],i);
+     elif not IsOne(hom) then
+       # not automorphism, but still acting
+       AddSet(doesaut[kn],i);
+     fi;
+   elif d in pools[poolnum] then
+     # we know already that the groups are isomorphic -- just store
+     # the new automorphism
 
-	    # isomorphism is always to the first element in the pool
-	    if d=pools[poolnum][1] then
-	      # the group is the normal form -- we do not need to translate
-	      diso:=IdentityMapping(dgp);
-	    else
-	      # isomorphism to canonical form
-	      diso:=InverseGeneralMapping(isoms[d]);
-	    fi;
-	    genimgs[kn][i]:=List(genims,x->ImagesRepresentative(diso,x));
+     # isomorphism is always to the first element in the pool
+     if d=pools[poolnum][1] then
+       # the group is the normal form -- we do not need to translate
+       diso:=IdentityMapping(dgp);
+     else
+       # isomorphism to canonical form
+       diso:=InverseGeneralMapping(isoms[d]);
+     fi;
+     genimgs[kn][i]:=List(genims,x->ImagesRepresentative(diso,x));
 
 # if ForAny(Flat(genimgs),x->not x in Image(csi.permap[pools[poolnum][1]])) then
 #   Error("imerrC");
 # fi;
-	    hom:=isom*hom*diso;
-	  SetIsBijective(hom,true);
-	    if not IsInnerAutomorphism(hom) then
-	      Add(auts[poolnum],hom);
-	      AddSet(doesaut[kn],i);
-	    fi;
-	  else
-	    # isomorphism wasn't known yet -- we need to join pools
-	    # hom is the joiner, isom*hom*isoms[d]^-1 the conjugator of the
-	    # canonical map
+     hom:=isom*hom*diso;
+   SetIsBijective(hom,true);
+     if not IsInnerAutomorphism(hom) then
+       Add(auts[poolnum],hom);
+       AddSet(doesaut[kn],i);
+     fi;
+   else
+     # isomorphism wasn't known yet -- we need to join pools
+     # hom is the joiner, isom*hom*isoms[d]^-1 the conjugator of the
+     # canonical map
 
-	    # the pool we add. We always join the image pool to the current
-	    # one.
-	    a:=First([1..Length(pools)],x->d in pools[x]);
-	    if a=fail then
-	      # we did not yet know layer d -- add it
+     # the pool we add. We always join the image pool to the current
+     # one.
+     a:=First([1..Length(pools)],x->d in pools[x]);
+     if a=fail then
+       # we did not yet know layer d -- add it
               Info(InfoFFMat,2,"Found Layer ",d);
-	      Add(pools[poolnum],d);
-	      isoms[d]:=isom*hom;
+       Add(pools[poolnum],d);
+       isoms[d]:=isom*hom;
               Assert(3,IsBijective(isoms[d]));
-	      # newly included component -- the generators *are* simply the
-	      # images
-	      genimgs[kn][i]:=List(genims,
-	        x->PreImagesRepresentativeNC(isoms[d],x));
+       # newly included component -- the generators *are* simply the
+       # images
+       genimgs[kn][i]:=List(genims,
+         x->PreImagesRepresentativeNC(isoms[d],x));
 
 #if ForAny(Flat(genimgs),x->not x in Image(csi.permap[pools[poolnum][1]])) then
   #Error("imerrB");
 #fi;
-	      goodgens[d]:=conjgens;
-	      Add(process,d);
-	    else
-	      Error("This cannot happen??");
-	      # we knew the layer and join pools
-	      Info(InfoFFMat,2,"Join ",pools[a]," to ",pools[poolnum]);
-	      conj:=isom*hom;
-	      if not d=pools[a][1] then
-		# translate to normal form
-		conj:=conj*InverseGeneralMapping(isoms[d]);
-	      fi;
+       goodgens[d]:=conjgens;
+       Add(process,d);
+     else
+       Error("This cannot happen??");
+       # we knew the layer and join pools
+       Info(InfoFFMat,2,"Join ",pools[a]," to ",pools[poolnum]);
+       conj:=isom*hom;
+       if not d=pools[a][1] then
+  # translate to normal form
+  conj:=conj*InverseGeneralMapping(isoms[d]);
+       fi;
 
-	      # join pools
-	      for x in pools[a] do
-		Add(pools[poolnum],x);
-		isoms[x]:=conj*isoms[x]; # reroot isomorphism
-	      od;
+       # join pools
+       for x in pools[a] do
+  Add(pools[poolnum],x);
+  isoms[x]:=conj*isoms[x]; # reroot isomorphism
+       od;
 
-	      # translate automorphisms
-	      for x in auts[a] do
-		Add(auts[poolnum],conj*x*InverseGeneralMapping(conj));
-	      od;
+       # translate automorphisms
+       for x in auts[a] do
+  Add(auts[poolnum],conj*x*InverseGeneralMapping(conj));
+       od;
 
-	      # delete old
-	      pools[a]:=[];
-	      auts[a]:=[];
-	    fi;
-	  fi;
-	od;
+       # delete old
+       pools[a]:=[];
+       auts[a]:=[];
+     fi;
+   fi;
+ od;
       od;
     fi;
     ii:=ii+1;
@@ -821,9 +823,14 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
     d:=Group(());
     a:=GeneratorsOfGroup(csi.group);
     b:=List(a,x->One(d));
-    RUN_IN_GGMBI:=true; # hack to skip Nice treatment
-    hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b);
-    RUN_IN_GGMBI:=false;
+    if RUN_IN_GGMBI=false then
+      RUN_IN_GGMBI:=true; # hack to skip Nice treatment
+      hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b:);
+      RUN_IN_GGMBI:=false;
+    else
+      hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b:Run_In_GGMBI:= true);
+    fi;
+
     dci:=rec(isTrivial:=true);
     SetRecogDecompinfoHomomorphism(hom,dci);
     SetImagesSource(hom,Group(()));
@@ -842,7 +849,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
     m:=Length(pools[i]);
     a:=Image(csi.permap[pools[i][1]]);
     a:=[a,Concatenation(auts[i],
-	    List(GeneratorsOfGroup(a),x->InnerAutomorphism(a,x)))];
+     List(GeneratorsOfGroup(a),x->InnerAutomorphism(a,x)))];
     a:=AutomorphismRepresentingGroup(a[1],a[2]);
     aels[i]:=a;
     localgens:=List(poolimggens[i],x->Image(a[2],x));
@@ -863,44 +870,44 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
 #      if true or ForAny(c,x->IsBound(doesaut[x])
 #        and ForAny(pools[i],y->y in doesaut[x])) then
         Info(InfoFFMat,2,c," acts ",pools[i],j);
-	for kn in c do
-	  #Add(biggens,csinice[kn]);
-	  Add(biggens,CSINiceGens(csi,kn));
-	  img:=One(w);
-	  for l in [1..Length(pools[i])] do
+ for kn in c do
+   #Add(biggens,csinice[kn]);
+   Add(biggens,CSINiceGens(csi,kn));
+   img:=One(w);
+   for l in [1..Length(pools[i])] do
             if IsBound(genimgs[kn][pools[i][l]]) then
-	      d:=Image(e[l],CSIAelement(a,localgens,genimgs[kn][pools[i][l]]));
-	    else
-	      if pools[i][l]=j then
-		d:=List(goodgens[pools[i][l]],
-			x->ImagesRepresentative(csi.permap[pools[i][l]],
-			  CSIImageHomNr(csi,pools[i][l],x^CSINiceGens(csi,kn))));
-		if isoms[j]<>false then
-		  d:=List(d,x->PreImagesRepresentativeNC(isoms[j],x));
-		fi;
-		d:=Image(e[l],CSIAelement(a,localgens,d));
-	      else
-		# component is not acted on as it lies higher
-		d:=One(a[1]);
-	      fi;
-	    fi;
-	    img:=img*d;
-	  od;
-	  # is it a nontrivial permutation
-	  if IsBound(perms[kn]) and ForAny([1..Length(perms[kn])],
-	    x->IsBound(perms[kn][x]) and perms[kn][x]<>x) then
-	    # fill up fixed points
-	    for d in pool do
-	      if not IsBound(perms[kn][d]) then perms[kn][d]:=d;fi;
-	    od;
+       d:=Image(e[l],CSIAelement(a,localgens,genimgs[kn][pools[i][l]]));
+     else
+       if pools[i][l]=j then
+  d:=List(goodgens[pools[i][l]],
+   x->ImagesRepresentative(csi.permap[pools[i][l]],
+     CSIImageHomNr(csi,pools[i][l],x^CSINiceGens(csi,kn))));
+  if isoms[j]<>false then
+    d:=List(d,x->PreImagesRepresentativeNC(isoms[j],x));
+  fi;
+  d:=Image(e[l],CSIAelement(a,localgens,d));
+       else
+  # component is not acted on as it lies higher
+  d:=One(a[1]);
+       fi;
+     fi;
+     img:=img*d;
+   od;
+   # is it a nontrivial permutation
+   if IsBound(perms[kn]) and ForAny([1..Length(perms[kn])],
+     x->IsBound(perms[kn][x]) and perms[kn][x]<>x) then
+     # fill up fixed points
+     for d in pool do
+       if not IsBound(perms[kn][d]) then perms[kn][d]:=d;fi;
+     od;
 
-	    # permuting part
-	    d:=PermList(List(perms[kn]{pool},x->Position(pool,x)));
-	    img:=img*Image(e[Length(pool)+1],d);
-	  fi;
+     # permuting part
+     d:=PermList(List(perms[kn]{pool},x->Position(pool,x)));
+     img:=img*Image(e[Length(pool)+1],d);
+   fi;
 
-	  Add(wrimages,img);
-	od;
+   Add(wrimages,img);
+ od;
 
     od;
     Add(wrs,w);
@@ -920,7 +927,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
   dci.embeddings:=List([1..Length(pools)],x->Embedding(d,x));
   dci.aels:=aels;
   a:=List([1..Length(pools)],x->List(DirectFactorsFittingFreeSocle(wrs[x]),
-				y->Image(dci.embeddings[x],y)));
+    y->Image(dci.embeddings[x],y)));
   dfs:=Concatenation(a);
   SetDirectFactorsFittingFreeSocle(d,dfs);
   a:=dfgens[1];
@@ -939,9 +946,13 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
   if IsPermGroup(csi.group) and AssertionLevel()>2 then
     hom:=GroupHomomorphismByImages(csi.group,d,a,b);
   else
-    RUN_IN_GGMBI:=true; # hack to skip Nice treatment
-    hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b);
-    RUN_IN_GGMBI:=false;
+    if RUN_IN_GGMBI=false then
+      RUN_IN_GGMBI:=true; # hack to skip Nice treatment
+      hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b);
+      RUN_IN_GGMBI:=false;
+    else
+      hom:=GroupHomomorphismByImagesNC(csi.group,d,a,b:Run_In_GGMBI:= true);
+    fi;
   fi;
   if hom=fail then
     Error("fail!");
@@ -976,10 +987,10 @@ local csi,pools,result,i,e,a,img,b,dp,d,kn,perm,l;
       perm[l]:=Position(pools[i],dp);
 
       d:=List(dci.goodgens[pools[i][l]],
-	      x->ImagesRepresentative(csi.permap[dp],
-		CSIImageHomNr(csi,dp,x^elm)));
+       x->ImagesRepresentative(csi.permap[dp],
+  CSIImageHomNr(csi,dp,x^elm)));
       if dci.isoms[dp]<>false then
-	d:=List(d,x->PreImagesRepresentativeNC(dci.isoms[dp],x));
+ d:=List(d,x->PreImagesRepresentativeNC(dci.isoms[dp],x));
       fi;
       d:=Image(e[l],CSIAelement(a,dci.poollocalgens[i],d));
       img:=img*d;
@@ -1071,7 +1082,7 @@ local a,p;
     if IsIdenticalObj(INVTRANSPCACHE[p][1],g) then
       a:=INVTRANSPCACHE[p][2];
       if p>50 then
-	p:=Concatenation([p],[1..p-1],[p+1..Length(INVTRANSPCACHE)]);
+ p:=Concatenation([p],[1..p-1],[p+1..Length(INVTRANSPCACHE)]);
         INVTRANSPCACHE:=INVTRANSPCACHE{p};
       fi;
     fi;
@@ -1103,18 +1114,18 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
     coinc:=true;
     while pnt<=Length(orb) do
       for g in gens do
-	img:=fct(orb[pnt],g);
-	p:=LookupDictionary(dict,img);
-	if p=fail then
-	  Add(orb,img);
-	  if Length(orb)>limit then
-	    return fail;
-	  fi;
-	  AddDictionary(dict,img,Length(orb));
-	  Add(t,t[pnt]*g);
-	elif coinc then
-	  coinc:=false;
-	fi;
+ img:=fct(orb[pnt],g);
+ p:=LookupDictionary(dict,img);
+ if p=fail then
+   Add(orb,img);
+   if Length(orb)>limit then
+     return fail;
+   fi;
+   AddDictionary(dict,img,Length(orb));
+   Add(t,t[pnt]*g);
+ elif coinc then
+   coinc:=false;
+ fi;
       od;
       pnt:=pnt+1;
     od;
@@ -1131,21 +1142,21 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
       orb:=orbtranslimit(fct(i,One(gens[1])),fct,limit);
       if orb<>fail and Length(orb[2])>1 then
         if Length(orb[2])>bestl then
-	  best:=orb;
-	  bestl:=Length(orb[2]);
-	  bestc:=1;
-	  if bestl>100 then
-	    return best;
-	  fi;
+   best:=orb;
+   bestl:=Length(orb[2]);
+   bestc:=1;
+   if bestl>100 then
+     return best;
+   fi;
         else
-	  bestc:=bestc+1;
-	  # if we got 30 times the same length then use it.
-	  if bestc>30 then
-	    return best;
-	  fi;
-	fi;
+   bestc:=bestc+1;
+   # if we got 30 times the same length then use it.
+   if bestc>30 then
+     return best;
+   fi;
+ fi;
       elif bestl>0 then
-	# we found at least one and others failed
+ # we found at least one and others failed
         return best;
       fi;
     od;
@@ -1227,55 +1238,55 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
       a:=Reversed(Filtered(dims,x->x<b));
       p:=fail;
       while p=fail and a[1]<>0 do
-	sub:=a[1];
-	fct:=FactorspaceActfun(f,bas{[1..sub]});
-	basn:=List(bas,x->fct(x,One(gens[1])));
-	p:=Filtered([a[1]+1..Minimum(a[1]+10,Length(bas))],
-			    x->ForAny(gens,y->fct(basn[x],y)<>basn[x]));
-	if p=[] then
-	  p:=Filtered([a[1]+10..Length(bas)],
-			      x->ForAny(gens,y->fct(basn[x],y)<>basn[x]));
-	fi;
-	if p=[] then
-	  p:=fail;
-	else
-	  # try to find one with orbit not just length p but also not too
-	  # large
-	  p:=Reversed(p);
-	  while Length(p)>1 and Size(f)^(p[1]-a[1])/(Size(f)-1)>limit do
-	    p:=p{[2..Length(p)]};
-	  od;
-	  p:=p[1];
-	fi;
-	a:=a{[2..Length(a)]};
+ sub:=a[1];
+ fct:=FactorspaceActfun(f,bas{[1..sub]});
+ basn:=List(bas,x->fct(x,One(gens[1])));
+ p:=Filtered([a[1]+1..Minimum(a[1]+10,Length(bas))],
+       x->ForAny(gens,y->fct(basn[x],y)<>basn[x]));
+ if p=[] then
+   p:=Filtered([a[1]+10..Length(bas)],
+         x->ForAny(gens,y->fct(basn[x],y)<>basn[x]));
+ fi;
+ if p=[] then
+   p:=fail;
+ else
+   # try to find one with orbit not just length p but also not too
+   # large
+   p:=Reversed(p);
+   while Length(p)>1 and Size(f)^(p[1]-a[1])/(Size(f)-1)>limit do
+     p:=p{[2..Length(p)]};
+   od;
+   p:=p[1];
+ fi;
+ a:=a{[2..Length(a)]};
       od;
       if p<>fail then
-	orb:=trymultipleorbits(bas{[p..Minimum(p+10,Length(bas))]},fct,limit);
-	if orb=fail then
-	  # try dual action
-	  fct:=AsInverseTranspose;
-	  p:=First([b..Length(bas)],x->ForAny(gens,y->fct(bas[x],y)<>bas[x]));
-	  if p<>fail then
-	    p:=[p];
-	    for orb in [1..5] do
-	      Add(p,p[1]+orb);
-	      Add(p,p[1]-orb);
-	    od;
-	    p:=Filtered(p,x->x>0 and x<Length(bas));
-	    orb:=trymultipleorbits(bas{p},fct,limit);
-	  fi;
-	  if orb=fail then
-	    Info(InfoFFMat,2,"even too long in dual");
-	    return rec(points:=[],ops:=[]);
-	  else
-	    Info(InfoFFMat,2,"dual ");
-	  fi;
-	else
-	  Info(InfoFFMat,2,"factor space ");
-	fi;
+ orb:=trymultipleorbits(bas{[p..Minimum(p+10,Length(bas))]},fct,limit);
+ if orb=fail then
+   # try dual action
+   fct:=AsInverseTranspose;
+   p:=First([b..Length(bas)],x->ForAny(gens,y->fct(bas[x],y)<>bas[x]));
+   if p<>fail then
+     p:=[p];
+     for orb in [1..5] do
+       Add(p,p[1]+orb);
+       Add(p,p[1]-orb);
+     od;
+     p:=Filtered(p,x->x>0 and x<Length(bas));
+     orb:=trymultipleorbits(bas{p},fct,limit);
+   fi;
+   if orb=fail then
+     Info(InfoFFMat,2,"even too long in dual");
+     return rec(points:=[],ops:=[]);
+   else
+     Info(InfoFFMat,2,"dual ");
+   fi;
+ else
+   Info(InfoFFMat,2,"factor space ");
+ fi;
       else
-	return rec(points:=[],ops:=[]);
-	Error("p=fail -- should not happen");
+ return rec(points:=[],ops:=[]);
+ Error("p=fail -- should not happen");
       fi;
 
     fi;
@@ -1299,13 +1310,13 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
       a:=siftchain(use,a);
       alt:=alt+1;
       if a[1]<>fail then
-	if fct(vec,a)<>vec then
-	  Error("not stab");
-	fi;
+ if fct(vec,a)<>vec then
+   Error("not stab");
+ fi;
         if not IsOne(a) and not a in new then
-	  Add(new,a);
-	  alt:=0;
-	fi;
+   Add(new,a);
+   alt:=0;
+ fi;
         a:=fail; # sifted through
       fi;
     od;
@@ -1449,7 +1460,7 @@ MATGRP_AddGeneratorToStabilizerChain:=
             return false;
         fi;
         #SS := StabilizerChain(Group(el),S!.opt);
-	SS:=StabilizerChain(Group(el),rec(Cand:=rec(ops:=[op],points:=[pt]),Reduced:=false,StrictlyUseCandidates:=true));
+ SS:=StabilizerChain(Group(el),rec(Cand:=rec(ops:=[op],points:=[pt]),Reduced:=false,StrictlyUseCandidates:=true));
 
         if IsString(SS) then return SS; fi;
         for n in NamesOfComponents(SS) do
@@ -1532,7 +1543,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
       #  Error("UGH");
       #fi;
       if not X!.orb!.orbit[1] in goodbase.points then
-	Error("new point!");
+ Error("new point!");
       fi;
       #if Length(X!.orb!.gens)<>Length(Set(X!.orb!.gens)) then
       #  Error("duplicate!");
@@ -1549,12 +1560,12 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
       fi;
 
       if IsBound(X!.orb!.gensi) and List(X!.orb!.gens,Inverse)<>X!.orb!.gensi then
-	Error(str,"inverse!");
+ Error(str,"inverse!");
       fi;
       if IsBound(X!.orb!.gensi) and ForAny(X!.orb!.schreiergen,IsInt)  and
-	Maximum(Filtered(X!.orb!.schreiergen,IsInt))>Length(X!.orb!.gensi)
-	then
-	Error("length!");
+ Maximum(Filtered(X!.orb!.schreiergen,IsInt))>Length(X!.orb!.gensi)
+ then
+ Error("length!");
       fi;
       X:=X!.stab;
     od;
@@ -1618,7 +1629,7 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
          Cand:=rec(points:=w.points,ops:=w.ops),
       #TODO XXX Find better strategy for limit iof field is larger
          VeryShortOrbLimit:=shortlim
-			     );
+        );
   FUNCSPACEHASH:=[]; # needed in base point selection code
   CBase:=StabilizerChain(a,opt);
   if sz<>fail and Size(CBase)<sz then
@@ -1702,29 +1713,29 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
         Info(InfoFFMat,2,"SS=",Size(S)," ",Length(U));
 
         for h in layergens do
-	  comm:=Comm(g,h);
+   comm:=Comm(g,h);
   #Print(Order(comm),"\n");
-	  if not SiftGroupElement(N,comm).isone then
-	    # wrong element -- get new generator for layer below
-	    a:=false;
-	    w:=comm;
-	    S:=N; # don't we want to forget what we added?
-	    return false;
-	  fi;
-	od;
+   if not SiftGroupElement(N,comm).isone then
+     # wrong element -- get new generator for layer below
+     a:=false;
+     w:=comm;
+     S:=N; # don't we want to forget what we added?
+     return false;
+   fi;
+ od;
 
-	# the sifted element will be as good as generator, but allows for
-	# cleaner decomposition.
-	g:=sift.rem;
+ # the sifted element will be as good as generator, but allows for
+ # cleaner decomposition.
+ g:=sift.rem;
 
-	V:=normalizingGenerator(g);
-	#g:=V[1];
+ V:=normalizingGenerator(g);
+ #g:=V[1];
   if g in U then Error("duplicate");fi;
-	U:=Concatenation([g],U);
-	Add(layergens,g);
-	for x in acter do
-	  Add(process,g^x);
-	od;
+ U:=Concatenation([g],U);
+ Add(layergens,g);
+ for x in acter do
+   Add(process,g^x);
+ od;
 
       fi;
     od;
@@ -1750,12 +1761,12 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
       oldsz:=Size(S);
       while not a do
         c:=c+1;
-	 if c>bound then
-	   # not solvable
-	   Error("not solvable");
-	 fi;
+  if c>bound then
+    # not solvable
+    Error("not solvable");
+  fi;
 
-	U:=solvNC(); # will change a,w
+ U:=solvNC(); # will change a,w
 
       od;
 Info(InfoFFMat,2,"Found Layer ",Size(S)/oldsz);
@@ -1792,10 +1803,10 @@ Info(InfoFFMat,2,"n");
   acter:=[];
   #S:=StabilizerChain(Group(One(gens[1])),rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true));
   #S := GENSS_CreateStabChainRecord(false,
-#				    [],1,
-#				    goodbase.points[1],
-#				    goodbase.ops[1],goodbase,
-#				    rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true,InitialHashSize:=10));
+#        [],1,
+#        goodbase.points[1],
+#        goodbase.ops[1],goodbase,
+#        rec(Base:=CBase,Reduced:=false,StrictlyUseCandidates:=true,InitialHashSize:=10));
   S:=false; # work around special treatment for trivial group.
   oldsz:=1;
   stabs:=[];
@@ -1817,7 +1828,7 @@ Info(InfoFFMat,2,"n");
       #SiftGroupElement(S,x);
 
       if not IsOne(x) then
-	normalizingGenerator(x);
+ normalizingGenerator(x);
       fi;
     else
       x:=gens[1];
@@ -1937,12 +1948,12 @@ Info(InfoFFMat,2,"n");
 #    vals:=Reversed(layervecs);
 #    for j in slp do
 #      if ForAll(j,IsList) then
-#	#last line
-#	slvec{sel}:=List(j,x->slpval(x));
+# #last line
+# slvec{sel}:=List(j,x->slpval(x));
 #      elif IsList(j[1]) then
-#	Error("reassign syntax?");
+# Error("reassign syntax?");
 #      else
-#	Add(vals,slpval(j));
+# Add(vals,slpval(j));
 #      fi;
 #    od;
   od;
@@ -2006,22 +2017,22 @@ local o,p,po,preS,r,v,vecs,prime;
       if IsObjWithMemory(x) then
         p := o!.op(o[1],x!.el);
       else
-	p := o!.op(o[1],x);
+ p := o!.op(o[1],x);
       fi;
       po := Position(o,p);
       if po = fail then   # not in current stabilizer
-	  Error("element not in group");
-	  return rec( v:=v,rem := x, S := S );
+   Error("element not in group");
+   return rec( v:=v,rem := x, S := S );
       fi;
       # Now sift through Schreier tree:
       while po > 1 do
-	r:=o!.schreiergen[po];
-	x := x * S!.orb!.gensi[r];
-	po := o!.schreierpos[po];
-	if S!.gensilayers[r]=l then
-	  # generator on the desired layer -- add up vectors
-	  v:=(v+vecs[S!.gensistrongpos[r]]) mod prime;
-	fi;
+ r:=o!.schreiergen[po];
+ x := x * S!.orb!.gensi[r];
+ po := o!.schreierpos[po];
+ if S!.gensilayers[r]=l then
+   # generator on the desired layer -- add up vectors
+   v:=(v+vecs[S!.gensistrongpos[r]]) mod prime;
+ fi;
       od;
       S := S!.stab;
   od;
@@ -2039,8 +2050,8 @@ local a,j,i,v;
       # need to divide off what is given by the vector
       for j in [1..Length(a)] do
         if a[j]<>0 then
-	  x:=LeftQuotient(S!.pcgs[S!.layranges[laynums[i]][j]]^a[j],x);
-	fi;
+   x:=LeftQuotient(S!.pcgs[S!.layranges[laynums[i]][j]]^a[j],x);
+ fi;
       od;
     fi;
   od;
@@ -2086,41 +2097,41 @@ local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,
 
       o := S!.orb;
       if IsObjWithMemory(x) then
-	p := o!.op(o[1],x!.el);
+ p := o!.op(o[1],x!.el);
       else
-	p := o!.op(o[1],x);
+ p := o!.op(o[1],x);
       fi;
       po := Position(o,p)-1;
 
       # decompose
       for i in [1..Length(sel)] do
-	seli:=sel[i];
+ seli:=sel[i];
 
-	q:=QuoInt(po,bs[i]);
-	rem:=po-q*bs[i];
-	if q>0 then
-	  if seli<dep[layer] then
-	    # decrease layer in which we decompose
-	    layer:=layer-1;
-	    while seli<dep[layer] do
-	      layer:=layer-1;
-	    od;
-	    delta:=ShallowCopy(z); # we need to forget all in the previous layer
-	    prime:=RelativeOrders(pcgs)[seli];
-	    curran:=pcgs!.layranges[layer];
-	  fi;
-	  #Add(prd,[sel[i],q]);;
+ q:=QuoInt(po,bs[i]);
+ rem:=po-q*bs[i];
+ if q>0 then
+   if seli<dep[layer] then
+     # decrease layer in which we decompose
+     layer:=layer-1;
+     while seli<dep[layer] do
+       layer:=layer-1;
+     od;
+     delta:=ShallowCopy(z); # we need to forget all in the previous layer
+     prime:=RelativeOrders(pcgs)[seli];
+     curran:=pcgs!.layranges[layer];
+   fi;
+   #Add(prd,[sel[i],q]);;
 
-	  # remember exponent entry if right layer
-	  if seli<dep[layer+1] then
-	    delta[seli]:=delta[seli]+q mod prime;
-	  fi;
+   # remember exponent entry if right layer
+   if seli<dep[layer+1] then
+     delta[seli]:=delta[seli]+q mod prime;
+   fi;
 
-	  #x:=x/(pcgs[sel[i]]^q);
-	  x:=x*pcgs!.invpows[seli][q]; # use stored inverse powers
+   #x:=x/(pcgs[sel[i]]^q);
+   x:=x*pcgs!.invpows[seli][q]; # use stored inverse powers
 
-	fi;
-	po:=rem;
+ fi;
+ po:=rem;
       od;
 
       #if o[1]<>o!.op(o[1],x) then Error("not all off!");fi;
@@ -2135,14 +2146,14 @@ local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,
 
       # we don't need to correct the last layer we use
       if deponly and not IsZero(delta) then
-	delta:=fail; # pop out.
+ delta:=fail; # pop out.
       elif layer<laynums[Length(laynums)] then
-	# we have d describe a the highest level. So we want x=d*newx
-	for i in curran do
-	  if delta[i]>0 then
-	    ox:=pcgs!.invpows[i][delta[i]]*ox;
-	  fi;
-	od;
+ # we have d describe a the highest level. So we want x=d*newx
+ for i in curran do
+   if delta[i]>0 then
+     ox:=pcgs!.invpows[i][delta[i]]*ox;
+   fi;
+ od;
       fi;
 
     fi;
@@ -2192,8 +2203,8 @@ local i,j,sel,lay,ip,sl,r,use;
     use:=false;
     for j in [1..Length(r)] do
       if ip<=Length(inds) and  r[j]=inds[ip] then
-	Add(sel,j+sl);
-	use:=true;
+ Add(sel,j+sl);
+ use:=true;
         ip:=ip+1;
       fi;
     od;
@@ -2253,16 +2264,16 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
     if sz>1 then
       stop:=true;
       repeat
-	for i in [1..3*Length(Factors(sz))] do
-	  if not IsDoneIterator(it) then
-	    x:=NextIterator(it);
-	    if not IsOne(x) and not x in k then
-	      Add(k,x);
-	    fi;
-	  fi;
-	od;
-	if sz>1 and Length(k)<Length(Factors(sz)) then stop:=false; fi; # work around issue
-	if ValueOption("doall")=true then stop:=false;fi;
+ for i in [1..3*Length(Factors(sz))] do
+   if not IsDoneIterator(it) then
+     x:=NextIterator(it);
+     if not IsOne(x) and not x in k then
+       Add(k,x);
+     fi;
+   fi;
+ od;
+ if sz>1 and Length(k)<Length(Factors(sz)) then stop:=false; fi; # work around issue
+ if ValueOption("doall")=true then stop:=false;fi;
       until stop or IsDoneIterator(it);
     fi;
   fi;
@@ -2282,9 +2293,13 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
     SetSize(rad,Product(RelativeOrders(sbs.pcgs)));
     sbs.radical:=rad;
     pc:=PcGroupWithPcgs(sbs.pcgs);
-    RUN_IN_GGMBI:=true; # hack to skip Nice treatment
-    hom:=GroupHomomorphismByImagesNC(rad,pc,sbs.pcgs,FamilyPcgs(pc));
-    RUN_IN_GGMBI:=false;
+    if RUN_IN_GGMBI=false then
+      RUN_IN_GGMBI:=true; # hack to skip Nice treatment
+      hom:=GroupHomomorphismByImagesNC(rad,pc,sbs.pcgs,FamilyPcgs(pc));
+      RUN_IN_GGMBI:=false;
+    else
+      hom:=GroupHomomorphismByImagesNC(rad,pc,sbs.pcgs,FamilyPcgs(pc):Run_In_GGMBI:= true);
+    fi;
     SetIsBijective(hom,true);
     sbs.pcisom:=hom;
   fi;
@@ -2325,29 +2340,29 @@ ReduceModM:=function(a,m)
       # matrix
       b:=[];
       for i in a do
-	r:=[];
-	for j in i do
-	  if IsZmodnZObjNonprime(j) then
-	    Add(r,MyZmodnZObj(j![1],m));
-	  else
-	    Add(r,MyZmodnZObj(j,m));
-	  fi;
-	od;
-	Add(b,r);
+ r:=[];
+ for j in i do
+   if IsZmodnZObjNonprime(j) then
+     Add(r,MyZmodnZObj(j![1],m));
+   else
+     Add(r,MyZmodnZObj(j,m));
+   fi;
+ od;
+ Add(b,r);
       od;
       if IsPrimeInt(m) then
-	b:=ImmutableMatrix(m,b);
+ b:=ImmutableMatrix(m,b);
       fi;
       return b;
     else
       # vector
       b:=[];
       for j in a do
-	if IsZmodnZObjNonprime(j) then
-	  Add(b,MyZmodnZObj(j![1],m));
-	else
-	  Add(b,MyZmodnZObj(j,m));
-	fi;
+ if IsZmodnZObjNonprime(j) then
+   Add(b,MyZmodnZObj(j![1],m));
+ else
+   Add(b,MyZmodnZObj(j,m));
+ fi;
       od;
       return b;
     fi;
@@ -2418,9 +2433,9 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       Add(pli,p);
       Add(idx,Length(pli));
       for j in [3..Length(a)] do
-	Add(moli,moli[Length(moli)]*p);
-	Add(idx,Length(pli));
-	Add(fac,fac[Length(fac)]/p);
+ Add(moli,moli[Length(moli)]*p);
+ Add(idx,Length(pli));
+ Add(fac,fac[Length(fac)]/p);
       od;
     fi;
     hom:=List(gens,x->ReduceModM(x,p));
@@ -2435,7 +2450,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     else
       img:=Group(hom);
       hom:=GroupHomomorphismByFunction(gnew,img,ReduceModMFunc(p),false,
-	    x->UnreduceModM(x,m));
+     x->UnreduceModM(x,m));
       SetImagesSource(hom,img);
       Add(homs,hom);
       ff:=FittingFreeLiftSetup(img);
@@ -2450,14 +2465,14 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     d:=List(ffhoms,Image);
     d:=DirectProduct(d);
     elmimg:=function(x)
-	    local p,i;
-	      p:=One(d);
-	      for i in [1..Length(ffhoms)] do
-		p:=p*ImagesRepresentative(Embedding(d,i),
-			ImagesRepresentative(ffhoms[i],x));
-	      od;
-	      return p;
-	    end;
+     local p,i;
+       p:=One(d);
+       for i in [1..Length(ffhoms)] do
+  p:=p*ImagesRepresentative(Embedding(d,i),
+   ImagesRepresentative(ffhoms[i],x));
+       od;
+       return p;
+     end;
     a:=List(gens,elmimg);
     hom:=GroupHomomorphismByFunction(gnew,SubgroupNC(d,a),elmimg);
   fi;
@@ -2468,7 +2483,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   #$ffpi[1]:=ffp[1]; # the first pcgs is guaranteed to be always fully there
 
   ffsubs:=List([1..Length(ffpi)],x->
-	    TrivialSubgroup(Image(ffppc[x])));
+     TrivialSubgroup(Image(ffppc[x])));
 
   upperpcgs:=List([1..Length(ffpi)],x->[]);
 
@@ -2490,8 +2505,8 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     if not p in ffsubs[i] then
       # need to extend induced pcgs
       s:=CanonicalPcgsByGeneratorsWithImages(ffp[i],
-	    Concatenation(ffpi[i],[r]),
-	    Concatenation(upperpcgs[i],[a]));
+     Concatenation(ffpi[i],[r]),
+     Concatenation(upperpcgs[i],[a]));
       ffpi[i]:=s[1];
       upperpcgs[i]:=s[2];
       ffsubs[i]:=ClosureGroup(ffsubs[i],p);
@@ -2510,25 +2525,25 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       added:=fail;
       for i in [start..Length(moli)] do
         bot:=i=Length(moli); # last step -- powers are multiples
-	p:=pli[idx[i]];
-	e:=List(a,x->List(x,y->y![1] mod moli[i]));
-	e:=e-idmat;
-	e:=fac[i]*Concatenation(e);
-	e:=ImmutableVector(GF(p),e*Z(p)^0);
-	if not IsZero(e) then
+ p:=pli[idx[i]];
+ e:=List(a,x->List(x,y->y![1] mod moli[i]));
+ e:=e-idmat;
+ e:=fac[i]*Concatenation(e);
+ e:=ImmutableVector(GF(p),e*Z(p)^0);
+ if not IsZero(e) then
           if bot and IsBound(bas[i]) and Length(bas[i])=layerlimit then
             # Bottom layer is full, nothing else needed to do
             a:=fail;
-	  elif IsBound(bas[i]) and Length(bas[i])>0 then
-	    s:=SolutionMat(bas[i],e);
-	    if s=fail then
-	      Add(bas[i],e);
-	      Add(basrep[i],a);
+   elif IsBound(bas[i]) and Length(bas[i])>0 then
+     s:=SolutionMat(bas[i],e);
+     if s=fail then
+       Add(bas[i],e);
+       Add(basrep[i],a);
               Add(basrepi[i],a^-1);
-	      if added=fail then added:=i;fi;
+       if added=fail then added:=i;fi;
               if not bot then a:=a^p;fi; # no need to do if on bottom
-	    else
-	      s:=List(s,Int);
+     else
+       s:=List(s,Int);
               # avoid inverse by imediately dividing off
               for j in [Length(s),Length(s)-1..1] do
                  if not IsZero(s[j]) then
@@ -2545,15 +2560,15 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
                   fi;
                 fi;
               od;
-	    fi;
-	  else
-	    bas[i]:=[e];
-	    basrep[i]:=[a];
+     fi;
+   else
+     bas[i]:=[e];
+     basrep[i]:=[a];
             basrepi[i]:=[a^-1];
-	    if added=fail then added:=i;fi;
+     if added=fail then added:=i;fi;
             if not bot then a:=a^p;fi; # no need to do if on bottom
-	  fi;
-	fi;
+   fi;
+ fi;
       od;
       return added;
     end;
@@ -2566,7 +2581,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
       ao:=a;
 
       for i in [1..Length(ffpi)] do
-	a:=addCleanUpper(i,a);
+ a:=addCleanUpper(i,a);
       od;
 
       bl:=List([2..Length(moli)],x->Length(bas[x]));
@@ -2641,11 +2656,11 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
       Append(pcgs,upperpcgs[i]);
       if not HasIndicesEANormalSteps(ffpi[i]) then
-	s:=FamilyPcgs(PcGroupWithPcgs(ffpi[i]));
-	if not IsPcgsElementaryAbelianSeries(s) then Error("not EA pcgs");fi;
-	s:=IndicesEANormalSteps(s);
+ s:=FamilyPcgs(PcGroupWithPcgs(ffpi[i]));
+ if not IsPcgsElementaryAbelianSeries(s) then Error("not EA pcgs");fi;
+ s:=IndicesEANormalSteps(s);
       else
-	s:=IndicesEANormalSteps(ffpi[i]);
+ s:=IndicesEANormalSteps(ffpi[i]);
       fi;
       s:=s{[1..Length(s)-1]}+p;
       Append(levs,s);
@@ -2665,24 +2680,24 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     for i in [2..Length(moli)] do
       # if j>=Length(moli)-1+@ the conjugate is guaranteed the same
       for j in [i..Length(moli)-i+1] do
-	if IsBound(basrep[i]) and IsBound(basrep[j]) then
-	  for k in basrep[i] do
-	    for l in basrep[j] do
-	      a:=addPcElement(l^k,j);
-	      if a<>fail then b:=false;fi;
-	    od;
-	  od;
-	fi;
+ if IsBound(basrep[i]) and IsBound(basrep[j]) then
+   for k in basrep[i] do
+     for l in basrep[j] do
+       a:=addPcElement(l^k,j);
+       if a<>fail then b:=false;fi;
+     od;
+   od;
+ fi;
       od;
     od;
     for j in [2..Length(moli)] do
       if IsBound(basrep[j]) then
-	for k in pcgs do
-	  for l in basrep[j] do
-	    a:=addPcElement(l^k,j);
-	    if a<>fail then b:=false;fi;
-	  od;
-	od;
+ for k in pcgs do
+   for l in basrep[j] do
+     a:=addPcElement(l^k,j);
+     if a<>fail then b:=false;fi;
+   od;
+ od;
       fi;
     od;
     return b;
@@ -2706,9 +2721,9 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 
   # decomposition info for pcgs
   r:=rec(pcgs:=pcgs,factorhom:=hom,
-	  homs:=homs,ffp:=ffp,ffpi:=ffpi,ffppc:=ffppc,idmat:=idmat,
-	  upperpcgs:=upperpcgs,moli:=moli,pli:=pli,idx:=idx,fac:=fac,
-	  depths:=levs,bas:=bas,basrep:=basrep);
+   homs:=homs,ffp:=ffp,ffpi:=ffpi,ffppc:=ffppc,idmat:=idmat,
+   upperpcgs:=upperpcgs,moli:=moli,pli:=pli,idx:=idx,fac:=fac,
+   depths:=levs,bas:=bas,basrep:=basrep);
 
   pcgs!.decompInfo:=r;
   SetRelativeOrders(pcgs,relord);
@@ -2724,9 +2739,13 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   if ValueOption("pcisom")<>false then
     i:=List(pcgs,x->ExponentsOfPcElement(pcgs,x^-1));
     p:=PcGroupWithPcgs(pcgs:inversehints:=i);
-    RUN_IN_GGMBI:=true; # hack to skip Nice treatment
-    p:=GroupHomomorphismByImagesNC(s,p,pcgs,FamilyPcgs(p));
-    RUN_IN_GGMBI:=false;
+    if RUN_IN_GGMBI=false then
+      RUN_IN_GGMBI:=true; # hack to skip Nice treatment
+      p:=GroupHomomorphismByImagesNC(s,p,pcgs,FamilyPcgs(p));
+      RUN_IN_GGMBI:=false;
+    else
+      p:=GroupHomomorphismByImagesNC(s,p,pcgs,FamilyPcgs(p):Run_In_GGMBI:= true);
+    fi;
     SetIsBijective(p,true);
     r.pcisom:=p;
   fi;
@@ -2757,12 +2776,12 @@ local e,s,i,p,exp;
     if not IsZero(e) then
       s:=SolutionMat(r.bas[i],e);
       if s=fail then
-	Error("not in span of pcgs");
+ Error("not in span of pcgs");
       else
-	s:=List(s,Int);
-	Append(exp,s);
-	s:=LinearCombinationPcgs(r.basrep[i],s);
-	elm:=LeftQuotient(s,elm);
+ s:=List(s,Int);
+ Append(exp,s);
+ s:=LinearCombinationPcgs(r.basrep[i],s);
+ elm:=LeftQuotient(s,elm);
       fi;
     elif IsBound(r.bas[i]) then
       Append(exp,ListWithIdenticalEntries(Length(r.bas[i]),0));
@@ -2775,8 +2794,7 @@ end;
 
 InstallMethod(ExponentsOfPcElement,"matrix residue pcgs",IsCollsElms,
   [IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs,
-    IsMatrixOrMatrixObj],
-function(pcgs,x)
+    IsMatrixOrMatrixObj], function(pcgs,x)
   return ExponentsResiduePcgs(pcgs!.decompInfo,x);
 end);
 
@@ -2804,13 +2822,26 @@ local d,gens,imgs,rest;
   if IsPermGroup(U) and AssertionLevel()>2 then
     rest:=GroupHomomorphismByImages(U,Range(hom),gens,imgs);
   else
-    RUN_IN_GGMBI:=true; # hack to skip Nice treatment
-    if IsBound(d.fct) then
-      rest:=GroupHomomorphismByFunction(U,Range(hom),d.fct);
+    if RUN_IN_GGMBI=false then
+      RUN_IN_GGMBI:=true; # hack to skip Nice treatment
+      if IsBound(d.fct) then
+        rest:=GroupHomomorphismByFunction(U,Range(hom),d.fct);
+      else
+        rest:=GroupHomomorphismByImagesNC(U,Range(hom),gens,imgs);
+      fi;
+      RUN_IN_GGMBI:=false;
     else
-      rest:=GroupHomomorphismByImagesNC(U,Range(hom),gens,imgs);
+      PushOptions( rec( Run_In_GGMBI:= true ) ); # hack to skip Nice treatment
+      if IsBound(d.fct) then
+        rest:=GroupHomomorphismByFunction(U,Range(hom),d.fct);
+      else
+        rest:=GroupHomomorphismByImagesNC(U,Range(hom),gens,imgs);
+      fi;
+      PopOptions();
     fi;
-    RUN_IN_GGMBI:=false;
+
+
+
   fi;
 
   SetRecogDecompinfoHomomorphism(rest,d);
@@ -2854,10 +2885,10 @@ end);
 # generic method, avoid nice method
 TFNormalClosure:=function ( G, N )
 local   gensG,      # generators of the group <G>
-	genG,       # one generator of the group <G>
-	gensN,      # generators of the group <N>
-	genN,       # one generator of the group <N>
-	cnj;        # conjugated of a generator of <U>
+ genG,       # one generator of the group <G>
+ gensN,      # generators of the group <N>
+ genN,       # one generator of the group <N>
+ cnj;        # conjugated of a generator of <U>
 
   gensG := GeneratorsOfGroup( G );
   gensN := ShallowCopy( GeneratorsOfGroup( N ) );
@@ -2865,8 +2896,8 @@ local   gensG,      # generators of the group <G>
     for genG  in gensG  do
       cnj := genN ^ genG;
       if not TFSubgroupMembership(G,N,cnj) then
-	Add( gensN, cnj );
-	N := SubgroupNC(G,gensN);
+ Add( gensN, cnj );
+ N := SubgroupNC(G,gensN);
       fi;
     od;
 
