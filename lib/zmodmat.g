@@ -331,4 +331,3 @@ local fam;
   b:=b mod Characteristic(fam);
   return MakeZmodnZVec(fam,b);
 end);
-
