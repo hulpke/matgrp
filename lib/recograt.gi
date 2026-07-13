@@ -21,7 +21,7 @@ if not IsBound(ImageRecogNode) then
 fi;
 
 OnSubmoduleCosets:=function(cset,g)
-local v;
+local
   return [SiftedVector(cset[2],cset[1]*g),cset[2]];
 end;
 
@@ -33,7 +33,8 @@ end;
 
 MakeSubmoduleColineAction:=function(basis)
   return function(vec,g)
-  local c;
+  local
+    c;  # position of the first nonzero entry of the sifted vector, used to normalize (scale) the coline representative
     vec:=SiftedVector(basis,vec*g);
     c:=PositionNonZero(vec);
     if c<=Length(vec) then
@@ -47,11 +48,43 @@ FUNCSPACEHASH:=[];
 # mod to genss -- use submodules and quotients for base points
 
 MSSFBPC:=function( grp, opt, ii, parentS ) # owf fct to call easily
-local F,dim,orb,orbs,i,fct,
-mo,cs,j,k,dims,bas,basc,basinv,nb,lastdim,cand,fcand,sel,limit,trysel,submodule;
+local
+  # -- local helper function --
+  trysel,     # helper: test a coordinate range as a subquotient module and, if usable, add base-point candidates from it
+  # -- group / field setup --
+  limit,      # orbit-length limit; spaces whose orbits would exceed this are considered too big and skipped
+  F,          # the field over which the matrix group `grp` is defined
+  cand,       # record (fields ops/points/used) accumulating the base-point candidates that get returned
+  # -- module and adapted basis --
+  mo,         # WARNING: multi-role -- (1) the GModule of `grp`, then (2) the list of generator matrices rewritten in
+              #          the adapted basis, then (3) an action function taken from opt.PCand.ops in the parent fallback
+  cs,         # WARNING: multi-role -- (1) the group generators, then (2) the bases of the composition series,
+              #          then (3) an orbit image point during the parent-candidate orbit enumeration
+  dim,        # dimension of the module `mo`
+  dims,       # list of the dimensions of the composition-series terms
+  bas,        # new basis of the underlying space, adapted to the composition series
+  basc,       # accumulator of subspace+factorspace vectors while `bas` is being built up
+  basinv,     # inverse of the basis-change matrix `bas`
+  lastdim,    # dimension of the submodule processed so far
+  nb,         # WARNING: two roles -- (1) a BaseSteinitzVectors basis-extension record while building `bas`,
+              #          and (2) a freshly constructed base-point (vector or subspace) inside trysel
+  # -- subquotient action (used inside trysel) --
+  fcand,      # base-point candidates found (recursively) for the current subquotient factor
+  fct,        # action function (submodule coset or coline action) built for a submodule
+  submodule,  # semi-echelonized basis of the submodule used for the coset/coline action
+  sel,        # WARNING: two roles -- (1) the coordinate range of the current subquotient, and
+              #          (2) the list of indices of parent candidates that turned out to have short orbits
+  # -- parent-candidate orbit fallback --
+  orb,        # orbit currently being enumerated
+  orbs,       # the same orbit stored as a Set for fast membership tests
+  # -- loop counters --
+  i,          # loop index over parent candidate points
+  j,          # loop index over composition-series terms / dimension steps
+  k;          # loop index over generators (and over factor candidates inside trysel)
 
   trysel:=function(recsub,recfac)
-  local lgens;
+  local
+    lgens;  # the module generators restricted to the selected coordinate range `sel` (the subquotient action)
     # nor the trivial action
     if ForAny(mo,x->Order(x{sel}{sel})>1) then
     Info(InfoFFMat,2,"range ",sel," have ",Length(cand.points));
@@ -239,14 +272,66 @@ InstallMethod(FindBasePointCandidates,
   MSSFBPC);
 
 GetInformationFromRecog:=function(recog)
-local treerecurse,n,factors,homs,leafgens,niceranges,genum,sz,leafs,g,
-      minranges,mingens,permap,furtherhom,fn,extragens,extranum,extra,allgens,
-      nicegp,map,stc,orbit,gd,cnt;
+local
+  # -- local helper function --
+  treerecurse,  # helper: recursively traverse the recognition tree, filling the per-factor arrays below
+  # -- running indices / counters --
+  n,            # running index of the current composition factor (also ends up as the total number of factors)
+  genum,        # running count of nice generators consumed so far (generator-number offset)
+  fn,           # running index into `furtherhom`
+  extranum,     # running index/counter for `extragens`
+  # -- per-factor result arrays (indexed by factor number n) --
+  leafs,        # for each factor: the recognition (leaf) node, or false
+  homs,         # for each factor: the homomorphism path `h` leading to it
+  factors,      # for each factor: the factor group, or false
+  sz,           # for each factor: the order of the factor
+  leafgens,     # for each factor: the number of nice generators at the leaf, or false
+  niceranges,   # for each factor: the range of nice-generator numbers, or false
+  minranges,    # for each factor: the reduced generator-number range (minimal generating subset)
+  mingens,      # for each factor: the indices of the chosen minimal generators
+  permap,       # for each factor: a map to a permutation representation (or identity mapping)
+  furtherhom,   # additional homomorphisms used when a non-simple factor has to be split
+  extragens,    # extra generators added to compatibilize generating sets across a split
+  # -- whole-tree data --
+  allgens,      # the full list of nice generators of the whole recognition tree
+  # -- variables shared into treerecurse via the closure --
+  g,            # the current factor group being worked on (matrix group, then its permutation image)
+  gd,           # the perfect residuum / smaller-degree image of `g`, used to improve the degree
+  orbit,        # union of stabilizer-chain orbits, used as the domain of a nice action homomorphism
+  cnt,          # counter for the random-vector search when building a projective action
+  extra,        # list of extra-generator indices contributed to the current factor
+  nicegp,       # the group generated by the nice-generator images `ng` (used for factorization into words)
+  map;          # epimorphism from a free group onto `nicegp`, for decomposing elements into words
 
   # the main worker function -- traverse the tree.
   treerecurse:=function(r,h)
+  # NB: g, nicegp, orbit, gd, cnt and map are NOT declared here -- they are locals of the
+  #     enclosing GetInformationFromRecog and are shared into this function via the closure.
   local
-  hom,f,k,sel,u,i,j,x,cs,nsol,xf,bigger,nicehom,ngi,stbc,opt,act,ng,dom,v;
+    # -- current-node data --
+    nicehom,  # the nice homomorphism from the current node's group to a permutation representation
+    stbc,     # base/stabilizer-chain information extracted from the node
+    act,      # the action (op) taken from the stabilizer chain
+    v,        # a vector/line used to build the orbit for a projective action homomorphism
+    dom,      # domain (orbit of lines) for the projective action homomorphism
+    # -- factor splitting --
+    cs,       # the composition series of the current group `g`
+    ng,       # the list of nice-generator images under `nicehom`
+    hom,      # NaturalHomomorphismByNormalSubgroup between successive composition factors
+    u,        # subgroup built up by closing over generators, to find which generators are needed
+    ngi,      # image of a single nice generator under `nicehom` (for the minimal generating set)
+    x,        # a generator/element currently being tested or factorized
+    xf,       # factorization of `x` as a word in the nice generators
+    # -- range / selection --
+    f,        # WARNING: two roles -- (1) the number of nice generators at a leaf, and
+              #          (2) the image recognition node when recursing into the tree
+    k,        # WARNING: two roles -- (1) the range [genum+1..genum+f] of nice-generator numbers, and
+              #          (2) the kernel recognition node when recursing into the tree
+    sel,      # indices of the selected (needed) generators for the current factor
+    # -- loop counters --
+    i,        # loop index (over composition series and over nice generators)
+    j;        # loop index (over generators)
+
     if IsLeaf(r) then
       f:=Length(NiceGens(r));
       Info(InfoFFMat,2,"Leaf",Size(r)," ",genum," ",f);
@@ -497,7 +582,10 @@ end;
 
 # assume that hom i can be applied
 CSIImageHomNr:=function(csi,n,x)
-local r,h,i;
+local
+  r,  # the recognition node, walked down the tree along the path
+  h,  # the homomorphism path csi.homs[n] (a list of 0/1/other step codes)
+  i;  # loop index over the path entries of `h`
   r:=csi.recog;
   h:=csi.homs[n];
   for i in h do
@@ -525,7 +613,8 @@ CSINiceGens:=function(csi,a)
 end;
 
 CSIDepthElm:=function(csi,x)
-local i;
+local
+  i;  # index of the layer currently being tested; the first non-trivial layer is returned as the depth
   i:=1;
   while i<=csi.n and
    (not IsBound(csi.leafs[i]) or # early skipped multiple solvable factor
@@ -545,7 +634,8 @@ end;
 # test on base, but also need to have sum of base
 # elm must be an element that is already image
 CSIProjectiveBases:=function(csi,i,elm)
-local m;
+local
+  m;  # the projective test base: a copy of the identity rows together with their sum, cached in csi.projbases[i]
   if not IsBound(csi.projbases) then
     csi.projbases:=[];
   fi;
@@ -558,7 +648,9 @@ local m;
 end;
 
 CSIDepthElm:=function(csi,x)
-local i,ximg;
+local
+  i,     # index of the layer currently being tested; the first non-trivial layer is returned as the depth
+  ximg;  # the image of `x` under the layer homomorphism (used for the projective triviality test)
   i:=1;
   while i<=csi.n do
     if not IsBound(csi.leafs[i]) or
@@ -582,7 +674,9 @@ local i,ximg;
 end;
 
 CSIAelement:=function(a,localgens,l)
-local limg,rep;
+local
+  limg,  # images of the tuple `l` under the automorphism-group map a[2]
+  rep;   # element of a[1] mapping `localgens` to `limg` by conjugation (RepresentativeAction result)
   limg:=List(l,x->Image(a[2],x));
   rep:= RepresentativeAction(a[1],localgens,limg,OnTuples);
   if rep=fail then
@@ -592,10 +686,68 @@ local limg,rep;
 end;
 
 FindAct:=function(csi)
-local csinice,dci,pool,
-act,n,i,j,k,l,gens,lgens,c,d,genims,gp,hom,auts,isoms,pools,poolnum,a,x,
-isom,diso,conj,dgp,imgdepth,perms,kn,process,ii,goodgens,conjgens,genimgs,
-doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,perm,lims,map,aels,wrsoc,dfs;
+local
+  # -- setup / inputs --
+  csinice,      # the nice generators of the recognition tree, NiceGens(csi.recog)  (csi is the parameter)
+  dci,          # the decomposition-info record being built up and returned inside the homomorphism
+  n,            # the number of layers, csi.n
+  # -- pool bookkeeping (grouping isomorphic non-solvable factors) --
+  pools,        # list of pools; each pool is a list of layer indices sharing an isomorphic simple factor
+  pool,         # the current pool being processed, pools[i]
+  poolnum,      # index of the pool the current layer belongs to
+  poolimggens,  # per-pool generator images inside the automorphism-representing group
+  isoms,        # per-layer isomorphism from the pool's representative group to that layer's group
+  isom,         # the isomorphism from the current group `gp` to the pool's normal form
+  diso,         # isomorphism to the canonical form for the image at depth `d`
+  conj,         # conjugator used when joining two pools
+  auts,         # per-pool list of automorphisms induced by the acting generators
+  doesaut,      # per-generator record of which layers that generator acts on as an automorphism
+  perms,        # per-generator record of how a generator permutes the components of a pool
+  # -- generators and images --
+  goodgens,     # per-layer canonical generators chosen for each factor
+  lgens,        # the good generators for the current layer i
+  conjgens,     # the conjugates l^k of the current generators
+  genims,       # generator images in the depth-`d` permutation group
+  genimgs,      # per-generator, per-layer list of generator images
+  gens,         # generator images of `lgens` in the permutation group `gp`
+  gp,           # the permutation group Image(csi.permap[i])
+  dgp,          # the image group at depth d, Image(csi.permap[d])
+  hom,          # homomorphism between the factor images / candidate automorphism
+  imgdepth,     # the common depth of the conjugated generator images (consistency check)
+  # -- process queue --
+  process,      # work-list (queue) of layer indices still to be processed
+  ii,           # index into `process` (the main processing loop counter)
+  kn,           # index of the conjugating nice generator
+  # -- wreath / direct-product construction --
+  aels,         # per-pool automorphism-representing-group data
+  localgens,    # generators mapped into the automorphism-representing group
+  biggens,      # the nice generators used as the "big" generators of the wreath image
+  wrimages,     # wreath-product images of the big generators
+  img,          # wreath-product image accumulated for one generator
+  wrs,          # list of the wreath products, one per pool
+  wrsoc,        # per-pool socle subgroups of the wreath products
+  dfgens,       # per-pool big-generator lists (direct-factor generators)
+  dfimgs,       # per-pool wreath images (direct-factor images)
+  dfs,          # the direct factors of the fitting-free socle
+  e,            # WARNING: two roles -- (1) the list of embeddings of a wreath product, and
+                #          (2) a single direct-product embedding dci.embeddings[i]
+  m,            # length of the current pool (number of direct factors)
+  w,            # WARNING: two roles -- (1) a WreathProduct group, and (2) a trivial-subgroup accumulator
+                #          for the socle image
+  # -- heavily reused scratch variables --
+  a,            # WARNING: multi-role -- a pool index (integer), the group generators, an automorphism-
+                #          representing-group datum, an image group, a matrix dimension, ... (reassigned throughout)
+  b,            # WARNING: multi-role -- a list of identity images, a symmetric group, a trivial-subgroup
+                #          accumulator, and finally the image subgroup
+  c,            # a conjugate element l^k, and elsewhere a minranges range list
+  d,            # WARNING: multi-role -- a layer depth (integer), a DirectProduct group, a wreath-image element,
+                #          and a permutation (reassigned throughout)
+  x,            # loop variable / element
+  # -- loop counters --
+  i,            # loop index
+  j,            # loop index (over earlier layers, over generators, ...)
+  k,            # the acting nice generator element, CSINiceGens(csi,kn)
+  l;            # loop variable (over lgens and over pool elements)
 
 
   # get a list of generator images and construct the appropriate element of
@@ -614,7 +766,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
   genimgs:=List([1..Maximum(Union(csi.minranges))],x->[]);
   n:=csi.n;
   csinice:=NiceGens(csi.recog);
-  act:=[];
+  # Unused: act:=[];
   auts:=[];
   pools:=[];
   perms:=[];
@@ -644,7 +796,7 @@ doesaut,biggens,wrimages,m,w,e,poolimggens,img,localgens,dfgens,wrs,dfimgs,b,per
       fi;
 
       gp:=Image(csi.permap[i]);
-      act[i]:=[];
+      # Unused: act[i]:=[];
       gens:=List(lgens,x->ImagesRepresentative(csi.permap[i],CSIImageHomNr(csi,i,x)));
 
 #      for x in [1..Length(gens)] do
@@ -971,7 +1123,22 @@ end;
 
 
 CSIElementAct:=function(dci,elm)
-local csi,pools,result,i,e,a,img,b,dp,d,kn,perm,l;
+local
+  # -- setup --
+  csi,     # the recognition tree info, dci.csi
+  pools,   # the pools, dci.pools
+  result,  # the accumulated image of `elm` in the direct product (return value)
+  # -- per-pool work --
+  e,       # the wreath embeddings for the current pool, dci.wreathemb[i]
+  a,       # the automorphism-representing-group data for the pool, dci.aels[i]
+  img,     # the wreath-product image accumulated for the current pool
+  perm,    # the permutation of the pool's components induced by `elm`
+  b,       # the conjugated good generators (goodgens ^ elm) at the current component
+  dp,      # depth of the conjugated element (which layer it lands in)
+  d,       # WARNING: multi-role -- a list of generator images, then a wreath-image element, then a permutation
+  # -- loop counters --
+  i,       # loop index over pools
+  l;       # loop index over the components of a pool
   csi:=dci.csi;
   pools:=dci.pools;
   result:=One(dci.dirprod);
@@ -1014,7 +1181,8 @@ InstallMethod(ImagesRepresentative,"for recognition mappings",
   [ IsGroupGeneralMapping and
   HasRecogDecompinfoHomomorphism,IsMultiplicativeElementWithInverse], 0,
 function(hom, x)
-local d;
+local
+  d;  # the decomposition-info record of the homomorphism, RecogDecompinfoHomomorphism(hom)
   d:=RecogDecompinfoHomomorphism(hom);
   if IsBound(d.isTrivial) then return ();fi;
   if IsBound(d.fct) then
@@ -1032,7 +1200,9 @@ InstallMethod(PreImagesSetNC,"for recognition mappings", CollFamRangeEqFamElms,
   [ IsGroupGeneralMapping and
   HasRecogDecompinfoHomomorphism,IsGroup], 0,
 function(hom, U)
-local gens,pre;
+local
+  gens,  # a small generating set of the subgroup U
+  pre;   # preimages under `hom` of those generators
   gens:=SmallGeneratingSet(U);
   pre:=List(gens,x->PreImagesRepresentativeNC(hom,x));
   U:=RecogDecompinfoHomomorphism(hom).LiftSetup;
@@ -1044,7 +1214,9 @@ end);
 #TODO: Detect Nonsolvable permuters (via perms) and leave out of pool
 
 BasePointsActionsOrbitLengthsStabilizerChain:=function(c)
-local l,o;
+local
+  l,  # accumulated list of [base point, action, orbit length] triples (return value)
+  o;  # the orbit record at the current level of the stabilizer chain
   l:=[];
   while c<>false do
     o:=c!.orb;
@@ -1056,11 +1228,13 @@ end;
 
 
 FactorspaceActfun:=function(field,bas)
-local heads;
+local
+  heads;  # the heads info of the semi-echelonized basis `bas`, captured for use by the returned action function
   bas:=TriangulizedMat(bas);
   heads:=HeadsInfoOfSemiEchelonizedMat(bas,Length(bas[1]));
   return function(v,g)
-    local c;
+    local
+      c;  # position of the first nonzero entry of the sifted vector, used to normalize (scale) it
     v:=v*g;
     v:=SiftedVectorForGaussianRowSpace(field,bas, heads, v );
     c:=PositionNonZero(v);
@@ -1074,7 +1248,10 @@ end;
 
 INVTRANSPCACHE:=[];
 AsInverseTranspose:=function(x,g)
-local a,p;
+local
+  a,  # the transposed inverse of `g`: looked up in the cache INVTRANSPCACHE, or computed and then cached
+  p;  # WARNING: two roles -- (1) the loop index scanning the cache, and
+      #          (2) a reordering list built to move a frequently-hit entry towards the front of the cache
   a:=fail;
   p:=0;
   while a=fail and p<Length(INVTRANSPCACHE) do
@@ -1101,11 +1278,49 @@ end;
 
 
 ModuleStructureBase:=function(mats)
-local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
-    new,alt,g,pnt,limit,whole,siftchain,sub,b,trymultipleorbits;
+local
+  # -- local helper functions --
+  orbtranslimit,     # helper: build an orbit with a transversal, aborting if it exceeds a length limit
+  trymultipleorbits, # helper: try several seed vectors and keep the best (longest) orbit found
+  siftchain,         # helper: sift an element down through the accumulated orbit/transversal chain
+  # -- group / module setup --
+  whole,             # the whole group Group(mats)
+  f,                 # the field of the matrix list, FieldOfMatrixList(mats)
+  mo,                # the GModule of the generators
+  limit,             # orbit-length limit (1000) beyond which an orbit is abandoned
+  gens,              # the current working generating set (shrinks and grows as the chain is (re)built)
+  # -- composition-series basis --
+  bas,               # basis of the space, adapted to the composition series
+  basn,              # normalized (OnLines) images of the basis vectors under a generator
+  dims,              # list of the dimensions of the composition-series terms
+  # -- chain construction --
+  use,               # the list of orbit records (one per base point) forming the constructed chain
+  total,             # running product of the orbit lengths (the group order computed so far)
+  fct,               # the action function currently in use (OnRight / OnLines / factor-space / dual action)
+  vec,               # the seed vector(s) from which the current orbit is grown
+  dict,              # dictionary for orbit-membership lookup of the current orbit
+  new,               # the new stabilizer generators found by random sifting
+  alt,               # counter of sifting attempts made
+  sub,               # dimension of the subspace defining a factor-space action
+  # -- heavily reused scratch variables --
+  a,                 # WARNING: multi-role -- a basis-vector accumulator, a reversed list of dimensions,
+                     #          a random group element, and a sift result (reassigned throughout)
+  p,                 # WARNING: two roles -- a position/dimension index (integer) and a list of positions
+  orb,               # WARNING: two roles -- an orbit (or the [dict,orb,t] triple returned by the helpers),
+                     #          and a plain loop counter in the dual-action retry
+  t,                 # WARNING: two roles -- a set of candidate vectors, and the transversal of an orbit
+  b;                 # a saved base position index
 
   orbtranslimit:=function(vec,fct,limit)
-  local dict,orb,t,pnt,g,img,p,coinc;
+  local
+    dict,   # dictionary mapping each orbit point to its index in `orb`
+    orb,    # the orbit (list of points) being enumerated (return component)
+    t,      # transversal: for each orbit point, a group element carrying `vec` to it (return component)
+    pnt,    # index of the orbit point currently being expanded
+    g,      # loop variable over the generators
+    img,    # image fct(orb[pnt],g) of the current point under a generator
+    p,      # looked-up index of `img` in `dict` (or fail if new)
+    coinc;  # tracks whether the orbit map coincided (a point was reached twice); assigned but not returned
     dict:=NewDictionary(vec,true,f^Length(vec));
     orb:=[vec];
     AddDictionary(dict,vec,1);
@@ -1133,7 +1348,12 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
   end;
 
   trymultipleorbits:=function(seeds,fct,limit)
-  local best,bestl,bestc,i,orb;
+  local
+    best,   # the best orbit triple [dict,orb,t] found so far (return value)
+    bestl,  # length of the best orbit found so far
+    bestc,  # how many times the current best length has recurred (a stability counter)
+    i,      # loop variable over the seed vectors
+    orb;    # the orbit computed for the current seed
     best:=fail;
     bestl:=0;
     bestc:=0;
@@ -1164,7 +1384,10 @@ local orbtranslimit,f,total,gens,mo,bas,basn,dims,a,p,vec,orb,t,dict,use,fct,
   end;
 
   siftchain:=function(use,x)
-  local i,img,u;
+  local
+    i,    # index of the chain level reached (returned as part of the failure marker)
+    img,  # image of the current level's action / its looked-up orbit position
+    u;    # loop variable over the chain records in `use`
     i:=1;
     for u in use do
       img:=u.fct(u.vec,x);
@@ -1348,7 +1571,18 @@ MATGRP_StabilizerChainInner:=
     # record for base point candidates and opt the (shared) option
     # record. This is called in StabilizerChain and calls itself.
     # It also can be called if a new layer is needed.
-    local base,gen,S,i,merk,merk2,next,pr,r,stabgens,x;
+    local
+      # -- chain being built --
+      S,          # the stabilizer-chain record for this layer (built and returned)
+      base,       # the base of S, S!.base
+      next,       # record holding the next base point and its action (point/op)
+      # -- Schreier-tree shallowing --
+      merk,       # saved number of orbit generators before making the Schreier tree shallower
+      merk2,      # saved number of strong generators before making the Schreier tree shallower
+      # -- random stabilizer generation (dead code after the early `return S`) --
+      stabgens,   # random stabilizer generators collected for the next layer
+      x,          # a random element generated from above
+      i;          # loop counter (over random-generator attempts / verification elements)
 
     Info(InfoGenSS,4,"Entering MATGRP_StabilizerChainInner layer=",layer);
     next:=rec(point:=cand.points[1],op:=cand.ops[1]);
@@ -1454,7 +1688,12 @@ MATGRP_StabilizerChainInner:=
 MATGRP_AddGeneratorToStabilizerChain:=
   function( S, el,pt,op )
     # Increases the set represented by S by the generator el.
-    local SS, r, n, pr, i, newstrongnr;
+    local
+      SS,           # the stabilizer-chain node at which the new generator (or new layer) is added
+      r,            # the sift result record for the element `el`
+      n,            # loop variable over the component names when copying a freshly built trivial-group chain
+      newstrongnr;  # index that the newly added strong generator will occupy in the strong-generator list
+
     if IsBound(S!.trivialgroup) and S!.trivialgroup then
         if S!.IsOne(el) then
             return false;
@@ -1532,8 +1771,64 @@ MATGRP_AddGeneratorToStabilizerChain:=
 
 
 SolvableBSGS:=function(arg)
-local CBase, normalizingGenerator,df,ops,firstmoved,i,
-solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,stabs,n,strongs,stronglevs,laynums,slvec,layerzero,p,laynum,layers,sel,vals,stronglayers,layervecs,slpval,slp,baspts,levp,blocksz,lstrongs,lstrongsinv,bl,opt,check,primes,shortlim,orb,orbs,j,sz,goodbase,CHAINTEST,orblens;
+local
+  # -- local helper functions --
+  CHAINTEST,             # helper: consistency checker for a stabilizer chain (debugging assertions)
+  normalizingGenerator,  # helper: add a generator to the chain S and return the new strong generators
+  solvNC,                # helper: compute one layer of the pcgs (a solvable normal-closure step)
+  # -- group / field setup --
+  gens,                  # the current working generating set (reassigned repeatedly: input gens, random gens,
+                         #   then the reversed pcgs to re-sift, ...) -- always "the generators to process"
+  acter,                 # the acting generators used to close each layer under conjugation
+  sz,                    # the known target group order (arg[3]), or fail if not supplied
+  df,                    # the default field of the matrix group, DefaultFieldOfMatrixGroup(a)
+  shortlim,              # short-orbit limit (scaled by the field size)
+  bound,                 # Dixon bound on the solvable length, used as a safety limit
+  opt,                   # options record passed to StabilizerChain (later reset to 1 to free memory)
+  goodbase,              # the reference base (points/ops) used when rebuilding chains
+  CBase,                 # the reference stabilizer chain / its base, reused to rebuild chains on the same base
+  # -- stabilizer chain working state --
+  S,                     # the stabilizer chain currently being built up (the main working chain)
+  oldsz,                 # saved Size(S) before an addition, to detect whether the group grew
+  # -- pcgs accumulation --
+  pcgs,                  # the pc generating sequence being accumulated (a list, later the Pcgs object)
+  U,                     # the list of pcgs elements found for the current layer (returned by solvNC)
+  prime,                 # the relative order (a prime) of the current layer
+  relord,                # list of the relative orders of the pcgs
+  depths,                # list of the layer-boundary indices (IndicesEANormalSteps) of the pcgs
+  n,                     # the number of pc generators, Length(pcgs)
+  x,                     # a generator/element currently being sifted or processed
+  c,                     # derived-series depth counter (guards against a non-solvable input via `bound`)
+  # -- strong generators and layer vectors --
+  strongs,               # the strong generators, arranged so that they coincide with the pcgs
+  stronglevs,            # the layer number of each strong generator
+  stronglayers,          # the layer of each strong generator (layers indexed by stronglevs)
+  slvec,                 # exponent vectors of the strong generators (for decomposition)
+  layerzero,             # zero-vector template for each layer
+  laynum,                # the number of layers, Length(depths)-1
+  layers,                # for each pcgs index, the number of the layer it belongs to
+  # -- decomposition indexing --
+  baspts,                # for each pcgs element, the index of the base point (level) that moves it
+  levp,                  # for each base point, the list of pcgs indices decomposed at that point
+  blocksz,               # for each pcgs element, its block size (orbit-position divisor)
+  # -- heavily reused scratch variables --
+  w,                     # WARNING: multi-role -- a ModuleStructureBase record, then a base-point list, then
+                         #   the current candidate pcgs generator (a group element inside solvNC)
+  a,                     # WARNING: multi-role -- the group, an integer dimension, a chain-walking node, a
+                         #   boolean flag, a matrix, and a saved copy of the pcgs (reassigned throughout)
+  p,                     # WARNING: multi-role -- a prime, a list of orbit positions, and a list of strong-
+                         #   generator positions (reassigned throughout)
+  xp,                    # WARNING: two roles -- a loop counter over `gens`, and later the index list [1..|pcgs|]
+  sel,                   # a selected list of indices (of orbit-moving generators / of a strong layer)
+  # -- loop counters --
+  i,                     # loop index
+  j,                     # loop index
+  # -- vestigial (assigned but effectively unused) --
+  check,                 # assigned true/false but never read
+  primes,                # assigned Set(Factors(Size(CBase))) but never read afterwards
+  stabs,                 # assigned [] but only populated/used in commented-out code
+  slpval,                # a nested function, defined but only called from commented-out code
+  vals;                  # only referenced by slpval and in commented-out code
 
   goodbase:=[];
   CHAINTEST:=function(X,str)
@@ -1665,7 +1960,12 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
   fi;
 
   normalizingGenerator:=function(g)
-  local oldstrong,oldsz,phq,pbp,pba;
+  local
+    oldsz,      # saved Size(S) before adding `g`, to detect that the group grew
+    oldstrong,  # saved copy of the strong generators before adding `g`
+    pba,        # the base points actually moved by `g`
+    pbp;        # the chosen base point (the first one moved by `g`)
+
     oldsz:=Size(S);
     oldstrong:=ShallowCopy(StrongGenerators(S));
     # work around the ommission of prior redundant base points
@@ -1686,7 +1986,20 @@ solvNC,S,pcgs,x,r,c,w,a,bound,U,xp,depths,oldsz,prime,relord,gens,acter,ogens,st
   end;
 
   solvNC:=function()
-  local N,process,layergens,U,g,h,r,V,x,comm,pow,wp,sift;
+  local
+    N,          # a fresh copy of the chain S, used for membership tests while building the layer
+    pow,        # the relative order (power) of `w` being determined
+    wp,         # successive powers of `w` used to determine `pow`
+    process,    # work-list of elements (the conjugates) still to process
+    layergens,  # the generators found so far for the current layer
+    U,          # the accumulated layer elements (return value)  [shares outer name]
+    g,          # loop variable over `process` (an element)
+    sift,       # the sift result of `g` through S
+    h,          # loop variable over `layergens`
+    comm,       # a commutator Comm(g,h) (tests whether the layer really is central/abelian enough)
+    V,          # the new strong generators returned by normalizingGenerator(g)
+    x;          # loop variable over `acter`
+
     N:=StabilizerChain(Group(StrongGenerators(S)),rec(Base:=CBase,Size:=Size(S),Reduced:=false,StrictlyUseCandidates:=true)); # really should be copy
 
     # determine relative order
@@ -1916,7 +2229,9 @@ Info(InfoFFMat,2,"n");
   od;
 
   slpval:=function(w)
-  local a,i;
+  local
+    a,  # the value accumulated while evaluating the straight-line-program line
+    i;  # loop index over the operands of the line
     a:=w[2]*vals[w[1]];
     for i in [3,5..Length(w)-1] do
       a:=(a+w[i+1]*vals[w[i]]) mod p;
@@ -2007,7 +2322,18 @@ end;
 
 # old ersion of exponent routines, allowing for arbitrary orbit arrangemnts
 MatPcgsSift:=function( S, x,l )
-local o,p,po,preS,r,v,vecs,prime;
+local
+  # -- setup --
+  vecs,   # the strong-generator vectors, S!.strongvecs
+  prime,  # the relative order (prime) of the requested layer `l`
+  v,      # the accumulated exponent vector for layer `l` (return value)
+  # -- per-level sifting --
+  o,      # the orbit at the current level of the chain
+  p,      # the image point o!.op(o[1],x)
+  po,     # position of `p` in the orbit `o`
+  r,      # the Schreier-generator index while sifting through the Schreier tree
+  # -- declared but unused --
+  preS;   # assigned false but never read
   v:=S!.layerzero[l];
   prime:=S!.layerprimes[l];
   vecs:=S!.strongvecs;
@@ -2040,7 +2366,11 @@ local o,p,po,preS,r,v,vecs,prime;
 end ;
 
 MatPcgsExponentsOld:=function(S,laynums,x)
-local a,j,i,v;
+local
+  v,  # the accumulated full exponent vector (return value)
+  a,  # the exponents contributed by one layer (from MatPcgsSift)
+  i,  # loop index over the requested layers `laynums`
+  j;  # loop index over the entries of `a` (used to divide off the found part)
   v:=[];
   for i in [1..Length(laynums)] do
     #S:=stabs[laynums[i]];
@@ -2063,8 +2393,40 @@ end;
 #decomposition as product, but not in canonical order, thus in multi stages
 #TODO compare cost matrix multiplication vs. collection
 MatPcgsExponents:=function(arg)
-local pcgs,laynums,ox,o,p,po,preS,r,isone,ind,i,prd,S,q,rem,bs,pS,x,dep,e,layer,delta,
-      z,prime,curran,seli,md,pos,sel,deponly;
+local
+  # -- inputs (from arg) --
+  pcgs,     # arg[1]: the pcgs
+  laynums,  # arg[2]: the layers whose exponents are wanted
+  ox,       # arg[3]: the element to decompose (the "original x", left untouched across passes)
+  deponly,  # arg[4]: flag -- only the depth (leading nonzero) is needed, not the full exponents
+  # -- chain / pcgs data --
+  pS,       # the stabilizer chain, pcgs!.stabilizerChain
+  dep,      # the layer boundaries, IndicesEANormalSteps(pcgs)
+  md,       # the lowest layer depth that is being ignored (last entry of laynums)
+  z,        # zero-vector template of full pcgs length
+  # -- decomposition state --
+  x,        # the working element, progressively divided down
+  S,        # the current stabilizer-chain node
+  e,        # the accumulated exponent vector (return value)
+  delta,    # the exponent contributions of the current pass (or fail to signal termination)
+  layer,    # the topmost layer currently being decomposed
+  prime,    # the relative order of `layer`
+  curran,   # the index range of `layer`, pcgs!.layranges[layer]
+  ind,      # index of the current chain level (stabilizer depth)
+  sel,      # the pcgs indices decomposed at the current base point, pcgs!.levp[ind]
+  bs,       # the block sizes for the current base point, pcgs!.blocksz{sel}
+  seli,     # the current pcgs index, sel[i]
+  o,        # the orbit at the current chain level
+  p,        # the image point o!.op(o[1],x)
+  po,       # position of `p` in the orbit (minus 1)
+  q,        # quotient QuoInt(po, bs[i])
+  rem,      # remainder po - q*bs[i]
+  # -- loop counter --
+  i,        # loop index
+  # -- vestigial / unused --
+  prd,      # assigned [] but only used in commented-out code
+  pos,      # assigned [] but never read
+  preS;     # assigned false but never read
 
   pcgs:=arg[1];
   laynums:=arg[2];
@@ -2181,7 +2543,15 @@ InstallOtherMethod(ExponentsOfPcElement,"matrix pcgs,indices",IsCollsElmsX,
   [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
    IsMatrixOrMatrixObj,IsList],
 function(pcgs,x,inds)
-local i,j,sel,lay,ip,sl,r,use;
+local
+  lay,   # the set of layers that need to be computed
+  sel,   # the positions within those layers' exponents that correspond to the requested indices
+  ip,    # pointer into the requested index list `inds`
+  sl,    # running offset accumulated as layers are added to `sel`
+  r,     # the index range of the current layer, pcgs!.layranges[i]
+  use,   # boolean: whether the current layer contributes any requested index
+  i,     # loop index over the layers, pcgs!.laynums
+  j;     # loop index over the entries of the current layer range `r`
   # is it a layer?
   for i in pcgs!.laynums do
     if inds=pcgs!.layranges[i] then
@@ -2220,13 +2590,15 @@ InstallMethod(DepthOfPcElement,"matrix pcgs",IsCollsElms,
   [IsPcgsMatGroupByStabChainRep and IsPcgs and IsPrimeOrdersPcgs,
   IsMatrixOrMatrixObj],
 function(pcgs,x)
-local e;
+local
+  e;  # the (depth-only) exponent vector; the depth is its first nonzero position
   e:=MatPcgsExponents(pcgs,pcgs!.laynums,x,true);
   return PositionNonZero(e);
 end);
 
 BindGlobal("TFDepthLeadExp",function(pcgs,x)
-local p;
+local
+  p;  # position of the first nonzero exponent (the depth), used to read off the leading exponent
   x:=MatPcgsExponents(pcgs,pcgs!.laynums,x,true); # first nonzero
   p:=PositionNonZero(x);
   if p>Length(x) then
@@ -2240,7 +2612,24 @@ end);
 InstallMethod(FittingFreeLiftSetup,"fields, using recognition",true,
   [IsMatrixGroup],0,
 function(G)
-local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
+local
+  # -- recognition / factor --
+  csi,        # the recognition tree information, GetInformationFromRecog(r)
+  factorhom,  # the homomorphism onto the fitting-free factor group, FindAct(csi)
+  r,          # WARNING: two roles -- (1) the default field of the matrix group, then (2) the recognition
+              #          result RecognizeGroup(G)
+  sz,         # the order of the radical, Size(G)/Size(Image(factorhom))
+  # -- radical / solvable part --
+  k,          # generators of the kernel (radical) collected via the cokernel iterator
+  it,         # iterator over cokernel generators of the (inverse) factor homomorphism
+  x,          # an element drawn from the cokernel iterator
+  stop,       # loop flag: stop collecting kernel generators
+  sbs,        # the solvable-radical BSGS setup record (SolvableBSGS result), extended and returned
+  rad,        # the solvable radical subgroup of G
+  pc,         # the pc group built from the radical's pcgs, PcGroupWithPcgs(sbs.pcgs)
+  hom,        # the isomorphism radical -> pc group
+  # -- loop counter --
+  i;          # loop index
   r:=DefaultFieldOfMatrixGroup(G);
   if not IsField(r) then
     TryNextMethod();
@@ -2312,7 +2701,9 @@ local csi,r,factorhom,sbs,k,pc,hom,rad,it,i,sz,x,stop;
 end);
 
 FFStats:=function(g)
-local start,f;
+local
+  start,  # the runtime at the start, used to report elapsed time
+  f;      # the fitting-free lift setup of `g`, FittingFreeLiftSetup(g)
   start:=Runtime();
   f:=FittingFreeLiftSetup(g);
   Print("Time:",Runtime()-start,"\n");
@@ -2334,7 +2725,12 @@ MyZmodnZObj:=function(a,b)
 end;
 
 ReduceModM:=function(a,m)
-  local b,r,i,j;
+  local
+    b,  # the reduced matrix or vector being assembled (return value)
+    r,  # WARNING: two roles -- (1) a single reduced row while building a matrix, and
+        #          (2) the residue ring `Integers mod m` in the matrix-object branch
+    i,  # loop index over rows
+    j;  # loop index over entries
   if IsList(a) then
     if IsList(a[1]) then
       # matrix
@@ -2388,10 +2784,67 @@ UnreduceModM:=Error;
 InstallMethod(FittingFreeLiftSetup,"residue class rings",true,
   [IsMatrixGroup],0,
 function(g)
-local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
-  upperpcgs,upperexp,it,e,moli,pli,j,idx,depths,pcgs,levs,relord,idmat,
-  fac,idmats,bas,basrep,basrepi,s,triv,addPcElement,procrels,addCleanUpper,
-  k,l,bl,stack,stacks,gens,gnew,layerlimit,fertig;
+local
+  # -- local helper functions --
+  elmimg,        # helper: map an element to its image in the direct product of the per-prime factor images
+  addCleanUpper, # helper: clean an element in the induced (quotient) pcgs of factor i
+  addPcElement,  # helper: add a pc element into the per-level module bases; returns the first level changed
+  procrels,      # helper: process the conjugation relations in the linear layers
+  # -- group / ring setup --
+  r,             # WARNING: two roles -- (1) the coefficient ring DefaultFieldOfMatrixGroup(g), and
+                 #          (2) the decomposition-info record assembled and returned at the end
+  triv,          # a trivial group, used as the range for trivial factor homomorphisms
+  idmat,         # the identity matrix over the ring (used to subtract off the identity part)
+  gens,          # the generators of g, converted to compact matrix objects if necessary
+  gnew,          # the group on the converted generators (equal to g if no conversion was needed)
+  m,             # the modulus, Size(r)
+  f,             # the list of prime-power factors of `m`
+  # -- per-prime factor decomposition --
+  homs,          # list of the reduction homomorphisms (mod p) for each prime power
+  hom,           # WARNING: two roles -- (1) a temporary list of reduced generator images, and
+                 #          (2) a genuine group homomorphism (the reduction / overall factor map)
+  img,           # the image group of a reduction homomorphism, Group(hom)
+  ff,            # the FittingFreeLiftSetup of a factor image
+  ffp,           # list of the factor pcgs
+  ffppc,         # list of the pcisom maps of the factors
+  ffhoms,        # list of the factor homomorphisms (reduction composed with the factor's factorhom)
+  d,             # WARNING: two roles -- (1) the list of factor images, and (2) their DirectProduct group
+  # -- module-level tables (indexed by module level) --
+  moli,          # the moduli (prime powers) of the successive module levels
+  pli,           # the prime of each module level
+  idx,           # for each level, the index of its prime in `pli`
+  fac,           # for each level, the scaling factor (1/p^k) applied when extracting the residue
+  # -- induced pcgs / factor state --
+  ffpi,          # per factor: the induced pcgs computed anew
+  ffsubs,        # per factor: the subgroup already covered by the induced pcgs
+  upperpcgs,     # per factor: preimages (in g) of the induced-pcgs generators
+  # -- per-level bases of the linear layers --
+  bas,           # per level: an echelonized basis of residue vectors
+  basrep,        # per level: group-element representatives of the basis vectors
+  basrepi,       # per level: inverses of those representatives
+  # -- iteration and work-lists --
+  it,            # iterator over cokernel generators of the (inverse) factor homomorphism
+  layerlimit,    # upper bound on the dimension of each linear layer
+  stacks,        # set of elements already processed (avoids reprocessing)
+  stack,         # work-list of G-conjugates still to process
+  ao,            # the original element, saved before it is reduced/cleaned
+  bl,            # saved base lengths per level, to detect when a base actually grew
+  fertig,        # "done" flag: all layers are full, so processing can stop  (German: finished)
+  # -- final pcgs assembly --
+  pcgs,          # the accumulated pc sequence, later the Pcgs object
+  relord,        # the relative orders of the pcgs
+  levs,          # the EA-normal-step (layer) indices of the pcgs
+  s,             # WARNING: two roles -- (1) EA-normal-step index lists while assembling levels, and
+                 #          (2) the radical subgroup SubgroupNC(g,pcgs) at the end
+  # -- heavily reused scratch variables --
+  a,             # WARNING: multi-role -- a factor list, generator images, an iterator element, and a
+                 #          conjugate/power element (reassigned throughout)
+  p,             # WARNING: multi-role -- a prime, a running count, the pc group, and a homomorphism
+  # -- loop counters --
+  i,             # loop index
+  j,             # loop index
+  k,             # loop index / element from `stack`
+  l;             # loop index
 
   triv:=TrivialSubgroup(CyclicGroup(2));
   r:=DefaultFieldOfMatrixGroup(g);
@@ -2423,7 +2876,7 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   pli:=[];
   idx:=[false];
   fac:=[false];
-  idmats:=[];
+  #idmats:=[];
   for i in f do
     a:=Factors(i);
     p:=a[1];
@@ -2465,14 +2918,15 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
     d:=List(ffhoms,Image);
     d:=DirectProduct(d);
     elmimg:=function(x)
-            local p,i;
-              p:=One(d);
-              for i in [1..Length(ffhoms)] do
-                p:=p*ImagesRepresentative(Embedding(d,i),
-                        ImagesRepresentative(ffhoms[i],x));
-              od;
-              return p;
-            end;
+     local p,  # the accumulated product image in the direct product `d`
+       i;  # loop index over the factor homomorphisms `ffhoms`
+       p:=One(d);
+       for i in [1..Length(ffhoms)] do
+          p:=p*ImagesRepresentative(Embedding(d,i),
+            ImagesRepresentative(ffhoms[i],x));
+       od;
+       return p;
+     end;
     a:=List(gens,elmimg);
     hom:=GroupHomomorphismByFunction(gnew,SubgroupNC(d,a),elmimg);
   fi;
@@ -2499,7 +2953,11 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   basrepi:=List(moli,x->[]);
 
   addCleanUpper:=function(i,a)
-  local r,p,s,e;
+  local
+    r,  # the image of `a` in factor i, ImagesRepresentative(homs[i],a)
+    p,  # the image of `r` in the pc factor (tests whether the induced pcgs must be extended)
+    s,  # the extended induced pcgs together with its preimages (a [pcgs,preimages] pair)
+    e;  # exponents of `r`, then the corresponding linear combination of upper-pcgs preimages
     r:=ImagesRepresentative(homs[i],a);
     p:=ImagesRepresentative(ffppc[i],r);
     if not p in ffsubs[i] then
@@ -2521,7 +2979,15 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   end;
 
   addPcElement:=function(a,start)
-    local i,j,p,e,s,added,bot,tmp;
+    local
+      added,  # the first module level at which a new basis vector was added (return value)
+      bot,    # boolean: whether we are at the bottom (last) module level
+      p,      # the prime of the current level, pli[idx[i]]
+      e,      # the residue vector of `a` at the current level
+      s,      # solution of `e` over the current basis (fail if `e` is independent)
+      i,      # loop index over the module levels
+      j;      # loop index over the entries of the solution `s`
+
       added:=fail;
       for i in [start..Length(moli)] do
         bot:=i=Length(moli); # last step -- powers are multiples
@@ -2675,7 +3141,13 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
   # conjugation relations in linear bits. Will rarely add new elements (so the
   # danger of running through multiple times is minimal).
   procrels:=function()
-  local i,j,k,l,a,b;
+  local
+    b,  # boolean return value: true means no new element was added (the process has converged)
+    a,  # the result of addPcElement (the level changed, or fail if nothing was added)
+    k,  # the conjugating element (a basis representative or a pcgs element)
+    l,  # the element being conjugated (a basis representative)
+    i,  # loop index over module levels
+    j;  # loop index over module levels
     b:=true;
     for i in [2..Length(moli)] do
       # if j>=Length(moli)-1+@ the conjugate is guaranteed the same
@@ -2756,7 +3228,13 @@ local r,m,f,a,ao,p,i,homs,hom,img,ff,ffp,ffpi,ffppc,ffhoms,ffsubs,d,elmimg,
 end);
 
 ExponentsResiduePcgs:=function(r,elm)
-local e,s,i,p,exp;
+local
+  exp,  # the accumulated exponent vector (return value)
+  e,    # the residue vector of the current linear layer
+  p,    # the prime of the current layer, r.pli[r.idx[i]]
+  s,    # WARNING: two roles -- (1) an exponent list (from ExponentsOfPcElement / a matrix solution), and
+        #          (2) the corresponding group element (a linear combination of pcgs elements)
+  i;    # loop index (over the upper pcgs factors, then over the linear layers)
   exp:=[];
   # upper pcgs part
   for i in [1..Length(r.ffpi)] do
@@ -2808,7 +3286,11 @@ InstallMethod(RestrictedMapping,"for recognition mappings",
   # make this ranked higher than even some default subset methods in grp.gi
   SUM_FLAGS+100,
 function(hom, U)
-local d,gens,imgs,rest;
+local
+  d,     # the decomposition-info record of `hom`, RecogDecompinfoHomomorphism(hom)
+  gens,  # the generators of the subgroup U
+  imgs,  # the images of those generators under the restriction
+  rest;  # the restricted homomorphism (return value)
   d:=RecogDecompinfoHomomorphism(hom);
   gens:=GeneratorsOfGroup(U);
   if IsBound(d.fct) then
@@ -2855,7 +3337,10 @@ InstallMethod(MaximalSubgroupClassReps,"TF method",true,
 DoMaxesTF);
 
 TFSubgroupMembership:=function(g,u,elm)
-local ffu,ff,x;
+local
+  ffu,  # the fitting-free setup for the subgroup u inside g, FittingFreeSubgroupSetup(g,u)
+  ff,   # the parent fitting-free setup, ffu.parentffs
+  x;    # the image of `elm` in the fitting-free factor
   ffu:=FittingFreeSubgroupSetup(g,u);
   ff:=ffu.parentffs;
   x:=ImagesRepresentative(ff.factorhom,elm);
@@ -2888,7 +3373,8 @@ local   gensG,      # generators of the group <G>
         genG,       # one generator of the group <G>
         gensN,      # generators of the group <N>
         genN,       # one generator of the group <N>
-        cnj;        # conjugated of a generator of <U>
+        cnj;        # a conjugate genN^genG of a generator of
+                    # <N> by a generator of <G>
 
   gensG := GeneratorsOfGroup( G );
   gensN := ShallowCopy( GeneratorsOfGroup( N ) );
