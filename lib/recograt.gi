@@ -219,7 +219,9 @@ local
     # all but last submodule was trivial -- step down on factors
     j:=Length(dims)-1;
     while j>0 and Length(cand.points)<=5 do
-      lastdim:=dims[j]-1;
+      # act on the quotient by the submodule cs[j], i.e. on the coordinates
+      # after the first dims[j] (the basis is adapted to the series).
+      lastdim:=dims[j];
       if (j>1 and Size(F)^(dim-dims[j-1])>limit) then
         sel:=[lastdim+1..dim];
         if trysel(false,false) then
