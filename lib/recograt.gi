@@ -2844,7 +2844,8 @@ local
   i,             # loop index
   j,             # loop index
   k,             # loop index / element from `stack`
-  l;             # loop index
+  l,             # loop index
+  converted;     # true if the generators were converted to compact matrices
 
   triv:=TrivialSubgroup(CyclicGroup(2));
   r:=DefaultFieldOfMatrixGroup(g);
@@ -2860,8 +2861,10 @@ local
     gens:=List(gens,x->Matrix(r,One(r)*List(x,r->List(r,Int))));
     gnew:=Group(gens);
     if HasSize(g) then SetSize(gnew,Size(g));fi;
+    converted:=true;
   else
     gnew:=g;
+    converted:=false;
   fi;
 
   m:=Size(r);
@@ -3186,6 +3189,17 @@ local
     fi;
     Add(levs,Length(pcgs)+1);
   od;
+
+  if converted then
+    # The computation was done with compact matrices, but the results must
+    # be usable together with the elements of g (products of the two
+    # representations cannot be inverted). So convert back to the
+    # representation of g, and define the factor map on g itself.
+    pcgs:=List(pcgs,Unpack);
+    upperpcgs:=List(upperpcgs,x->List(x,Unpack));
+    basrep:=List(basrep,x->List(x,Unpack));
+    hom:=GroupHomomorphismByFunction(g,Range(hom),elmimg);
+  fi;
 
   pcgs:=PcgsByPcSequenceCons(IsPcgsDefaultRep,
     IsPcgsResidueMatGroupRep and IsPcgs and IsPrimeOrdersPcgs,
