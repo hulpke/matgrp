@@ -2631,7 +2631,7 @@ local
   # -- loop counter --
   i;          # loop index
   r:=DefaultFieldOfMatrixGroup(G);
-  if not IsField(r) then
+  if not (IsField(r) and IsFinite(r)) then
     TryNextMethod();
   fi;
 
