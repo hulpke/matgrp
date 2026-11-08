@@ -762,7 +762,8 @@ local
 
   goodgens:=[];
   poolimggens:=[];
-  genimgs:=List([1..Maximum(Union(csi.minranges))],x->[]);
+  # Concatenation with [0] covers the trivial group, where there are no layers
+  genimgs:=List([1..Maximum(Concatenation([0],Union(csi.minranges)))],x->[]);
   n:=csi.n;
   csinice:=NiceGens(csi.recog);
   # Unused: act:=[];
