@@ -21,7 +21,6 @@ if not IsBound(ImageRecogNode) then
 fi;
 
 OnSubmoduleCosets:=function(cset,g)
-local
   return [SiftedVector(cset[2],cset[1]*g),cset[2]];
 end;
 
